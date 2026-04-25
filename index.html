@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEROS Project — Embodied Agent Runtime Research Program</title>
+<meta name="description" content="A seven-paper research program on runtime architecture, governance, evolution, contracts, federation, and benchmarking for embodied agent systems.">
+
+<style>
+  :root {
+    --blue: #2E5FA1;
+    --dark: #1a1a2e;
+    --gray: #f8f9fa;
+    --border: #e0e0e0;
+    --text: #333;
+    --light-text: #666;
+    --accent: #e8f0fe;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: white;
+    padding: 80px 20px 60px;
+    text-align: center;
+  }
+  .hero h1 {
+    font-size: 2.8em;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+  .hero h1 span { color: #64b5f6; }
+  .hero .subtitle {
+    font-size: 1.25em;
+    color: #b0bec5;
+    max-width: 750px;
+    margin: 0 auto 30px;
+    font-weight: 300;
+  }
+  .hero .tagline {
+    display: inline-block;
+    background: rgba(100, 181, 246, 0.15);
+    border: 1px solid rgba(100, 181, 246, 0.3);
+    border-radius: 20px;
+    padding: 6px 20px;
+    font-size: 0.9em;
+    color: #90caf9;
+    margin-bottom: 30px;
+  }
+  .hero-links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .hero-links a {
+    display: inline-block;
+    padding: 10px 24px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95em;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: #64b5f6; color: #1a1a2e; }
+  .btn-primary:hover { background: #90caf9; }
+  .btn-secondary { background: transparent; color: #b0bec5; border: 1px solid #b0bec5; }
+  .btn-secondary:hover { color: white; border-color: white; }
+
+  /* Container */
+  .container { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+
+  /* Narrative */
+  .narrative {
+    padding: 60px 20px;
+    background: white;
+  }
+  .narrative h2 {
+    font-size: 1.8em;
+    color: var(--dark);
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .narrative .lead {
+    text-align: center;
+    color: var(--light-text);
+    max-width: 700px;
+    margin: 0 auto 40px;
+    font-size: 1.05em;
+  }
+
+  /* Vertical Timeline */
+  .timeline {
+    position: relative;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 0 0 0 40px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #64b5f6, var(--blue), #1a1a2e);
+  }
+  .tl-item {
+    position: relative;
+    margin-bottom: 28px;
+    padding-left: 24px;
+  }
+  .tl-item:last-child { margin-bottom: 0; }
+  .tl-dot {
+    position: absolute;
+    left: -32px;
+    top: 4px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--blue);
+    color: white;
+    font-size: 0.7em;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px var(--blue);
+  }
+  .tl-label {
+    font-weight: 600;
+    color: var(--blue);
+    font-size: 0.82em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+  .tl-title {
+    font-weight: 600;
+    font-size: 1em;
+    color: var(--dark);
+    margin-bottom: 4px;
+  }
+  .tl-desc {
+    font-size: 0.88em;
+    color: #555;
+    line-height: 1.5;
+  }
+
+  /* Architecture Diagram */
+  .diagram {
+    padding: 60px 20px 50px;
+    background: var(--gray);
+  }
+  .diagram h2 {
+    font-size: 1.8em;
+    color: var(--dark);
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .diagram .lead {
+    text-align: center;
+    color: var(--light-text);
+    max-width: 720px;
+    margin: 0 auto 30px;
+    font-size: 1.05em;
+  }
+  .diagram-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+    padding: 20px 20px 16px;
+    max-width: 920px;
+    margin: 0 auto 16px;
+    overflow-x: auto;
+  }
+  .diagram-legend {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    max-width: 920px;
+    margin: 0 auto;
+    font-size: 0.8em;
+    color: var(--light-text);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Papers */
+  .papers {
+    padding: 60px 20px;
+    background: var(--gray);
+  }
+  .papers h2 {
+    font-size: 1.8em;
+    color: var(--dark);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .papers .lead {
+    text-align: center;
+    color: var(--light-text);
+    margin-bottom: 40px;
+  }
+  .paper-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    transition: box-shadow 0.2s;
+  }
+  .paper-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  }
+  .paper-num {
+    background: var(--blue);
+    color: white;
+    font-weight: 700;
+    font-size: 0.85em;
+    min-width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .paper-body { flex: 1; }
+  .paper-body h3 {
+    font-size: 1.05em;
+    margin-bottom: 4px;
+    color: var(--dark);
+  }
+  .paper-body .venue {
+    font-size: 0.82em;
+    color: var(--light-text);
+    margin-bottom: 6px;
+  }
+  .paper-body .desc {
+    font-size: 0.9em;
+    color: #555;
+    margin-bottom: 8px;
+  }
+  .paper-links { display: flex; gap: 8px; flex-wrap: wrap; }
+  .paper-links a {
+    font-size: 0.8em;
+    padding: 3px 10px;
+    border-radius: 4px;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    color: var(--blue);
+    transition: all 0.2s;
+  }
+  .paper-links a:hover {
+    background: var(--accent);
+    border-color: var(--blue);
+  }
+
+  /* BibTeX */
+  .bibtex {
+    padding: 60px 20px;
+    background: white;
+  }
+  .bibtex h2 {
+    font-size: 1.8em;
+    color: var(--dark);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .bibtex .lead {
+    text-align: center;
+    color: var(--light-text);
+    margin-bottom: 30px;
+  }
+  .bib-block {
+    background: #f5f5f5;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    font-family: 'SFMono-Regular', 'Consolas', monospace;
+    font-size: 0.78em;
+    line-height: 1.6;
+    overflow-x: auto;
+    white-space: pre;
+    position: relative;
+    margin-bottom: 16px;
+  }
+  .copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--blue);
+    color: white;
+    border: none;
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em;
+  }
+  .copy-btn:hover { background: #1e4a8a; }
+
+  /* Authors */
+  .authors {
+    padding: 60px 20px;
+    background: var(--gray);
+  }
+  .authors h2 {
+    font-size: 1.8em;
+    color: var(--dark);
+    margin-bottom: 30px;
+    text-align: center;
+  }
+  .author-grid {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+  .author-item {
+    text-align: center;
+    min-width: 140px;
+  }
+  .author-item .name {
+    font-weight: 600;
+    font-size: 1em;
+    color: var(--dark);
+  }
+  .author-item .affil {
+    font-size: 0.8em;
+    color: var(--light-text);
+    margin-top: 2px;
+  }
+  .author-item .corresponding {
+    font-size: 0.75em;
+    color: var(--blue);
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 30px 20px;
+    color: var(--light-text);
+    font-size: 0.85em;
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 1.8em; }
+    .paper-card { flex-direction: column; gap: 10px; }
+    .flow-item { min-width: 80px; font-size: 0.75em; padding: 6px 10px; }
+    .flow-arrow { font-size: 1em; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== HERO ==================== -->
+<section class="hero">
+  <div class="tagline">7-Paper Research Program &middot; Architecture &rarr; Governance &rarr; Benchmark</div>
+  <h1><span>AEROS</span> Project</h1>
+  <p class="subtitle">
+    A systematic research program on runtime architecture, governance, evolution, contracts, federation, and benchmarking for embodied agent systems.
+  </p>
+  <div class="hero-links">
+    <a href="#papers" class="btn-primary">Paper Series</a>
+    <a href="#bibtex" class="btn-secondary">BibTeX</a>
+    <a href="https://github.com/s20sc/aeros-project" class="btn-secondary">GitHub</a>
+  </div>
+</section>
+
+<!-- ==================== ARCHITECTURE DIAGRAM ==================== -->
+<section class="diagram">
+  <div class="container">
+    <h2>System Architecture</h2>
+    <p class="lead">Seven papers, one coherent architecture &mdash; from the ECM runtime core to fleet-scale governance evaluation.</p>
+    <div class="diagram-card">
+      <svg viewBox="0 0 960 520" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
+
+        <!-- ===== P7 Benchmark (outermost dashed frame) ===== -->
+        <rect x="2" y="2" width="956" height="516" rx="16"
+              fill="#FFFAFA" stroke="#DC2626" stroke-width="2" stroke-dasharray="10 5"/>
+        <text x="480" y="22" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="600" fill="#DC2626" letter-spacing="0.3">
+          P7 &mdash; EmbodiedGovBench &middot; Governance Evaluation Framework
+        </text>
+
+        <!-- ===== P6 Federation (solid frame) ===== -->
+        <rect x="18" y="36" width="924" height="462" rx="12"
+              fill="#F0FDFA" stroke="#0891B2" stroke-width="1.5"/>
+        <text x="480" y="54" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11.5" font-weight="600" fill="#0891B2">
+          P6 &mdash; Federated Single-Agent Fleet
+        </text>
+
+        <!-- =============== ROBOT A =============== -->
+        <rect x="34" y="64" width="400" height="350" rx="10"
+              fill="white" stroke="#CBD5E1" stroke-width="1"/>
+        <text x="234" y="82" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10.5" font-weight="600" fill="#64748B">
+          Robot A &middot; Single-Agent Runtime
+        </text>
+
+        <!-- P3-A Governance -->
+        <rect x="46" y="92" width="376" height="250" rx="8"
+              fill="#FFFBEB" stroke="#D97706" stroke-width="1.5"/>
+        <text x="56" y="108" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#92400E">P3 Governance</text>
+        <text x="56" y="119" font-family="system-ui,sans-serif" font-size="8.5" fill="#B45309">Policy &middot; Watchers &middot; Recovery &middot; Human Override</text>
+
+        <!-- P2/P4-A Evolution -->
+        <rect x="56" y="124" width="356" height="206" rx="7"
+              fill="#ECFDF5" stroke="#059669" stroke-width="1.5"/>
+        <text x="66" y="140" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#065F46">P2 | P4 Governed Evolution</text>
+        <text x="66" y="151" font-family="system-ui,sans-serif" font-size="8.5" fill="#047857">Safe Upgrade &middot; Shadow Mode &middot; Rollback &middot; Validation</text>
+
+        <!-- P5-A Contracts -->
+        <rect x="66" y="156" width="336" height="162" rx="6"
+              fill="#F5F3FF" stroke="#7C3AED" stroke-width="1.5"/>
+        <text x="76" y="172" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#5B21B6">P5 Contracts</text>
+        <text x="76" y="183" font-family="system-ui,sans-serif" font-size="8.5" fill="#6D28D9">Interface &middot; Compatibility &middot; Versioning &middot; Release Discipline</text>
+
+        <!-- P1-A AEROS Runtime -->
+        <rect x="76" y="190" width="316" height="118" rx="5"
+              fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5"/>
+        <text x="234" y="208" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#1E40AF">P1 AEROS Runtime</text>
+
+        <!-- ECM blocks in Robot A -->
+        <!-- ECM 1: Navigate -->
+        <rect x="90" y="216" width="86" height="80" rx="5"
+              fill="#DBEAFE" stroke="#2563EB" stroke-width="1"/>
+        <circle cx="133" cy="232" r="5" fill="#93C5FD" stroke="#2563EB" stroke-width="0.8"/>
+        <text x="133" y="250" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" font-weight="600" fill="#1E40AF">ECM</text>
+        <text x="133" y="264" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#3B82F6">Navigate</text>
+        <text x="133" y="288" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#94A3B8">v2.3</text>
+
+        <!-- ECM 2: Grasp -->
+        <rect x="191" y="216" width="86" height="80" rx="5"
+              fill="#DBEAFE" stroke="#2563EB" stroke-width="1"/>
+        <circle cx="234" cy="232" r="5" fill="#93C5FD" stroke="#2563EB" stroke-width="0.8"/>
+        <text x="234" y="250" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" font-weight="600" fill="#1E40AF">ECM</text>
+        <text x="234" y="264" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#3B82F6">Grasp</text>
+        <text x="234" y="288" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#94A3B8">v1.7</text>
+
+        <!-- ECM 3: Inspect -->
+        <rect x="292" y="216" width="86" height="80" rx="5"
+              fill="#DBEAFE" stroke="#2563EB" stroke-width="1"/>
+        <circle cx="335" cy="232" r="5" fill="#93C5FD" stroke="#2563EB" stroke-width="0.8"/>
+        <text x="335" y="250" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" font-weight="600" fill="#1E40AF">ECM</text>
+        <text x="335" y="264" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#3B82F6">Inspect</text>
+        <text x="335" y="288" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#94A3B8">v3.0</text>
+
+        <!-- Audit bar Robot A -->
+        <rect x="46" y="352" width="376" height="48" rx="6"
+              fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="4 3"/>
+        <text x="234" y="372" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" font-weight="500" fill="#64748B">
+          Audit Trail &middot; Execution Trace &middot; Recovery Log
+        </text>
+        <text x="234" y="388" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#94A3B8">
+          Human Supervisor H&#x2090;
+        </text>
+
+        <!-- =============== ROBOT B =============== -->
+        <rect x="526" y="64" width="400" height="350" rx="10"
+              fill="white" stroke="#CBD5E1" stroke-width="1"/>
+        <text x="726" y="82" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10.5" font-weight="600" fill="#64748B">
+          Robot B &middot; Single-Agent Runtime
+        </text>
+
+        <!-- P3-B Governance -->
+        <rect x="538" y="92" width="376" height="250" rx="8"
+              fill="#FFFBEB" stroke="#D97706" stroke-width="1.5"/>
+        <text x="548" y="108" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#92400E">P3 Governance</text>
+        <text x="548" y="119" font-family="system-ui,sans-serif" font-size="8.5" fill="#B45309">Policy &middot; Watchers &middot; Recovery &middot; Human Override</text>
+
+        <!-- P2/P4-B Evolution -->
+        <rect x="548" y="124" width="356" height="206" rx="7"
+              fill="#ECFDF5" stroke="#059669" stroke-width="1.5"/>
+        <text x="558" y="140" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#065F46">P2 | P4 Governed Evolution</text>
+        <text x="558" y="151" font-family="system-ui,sans-serif" font-size="8.5" fill="#047857">Safe Upgrade &middot; Shadow Mode &middot; Rollback &middot; Validation</text>
+
+        <!-- P5-B Contracts -->
+        <rect x="558" y="156" width="336" height="162" rx="6"
+              fill="#F5F3FF" stroke="#7C3AED" stroke-width="1.5"/>
+        <text x="568" y="172" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#5B21B6">P5 Contracts</text>
+        <text x="568" y="183" font-family="system-ui,sans-serif" font-size="8.5" fill="#6D28D9">Interface &middot; Compatibility &middot; Versioning &middot; Release Discipline</text>
+
+        <!-- P1-B AEROS Runtime -->
+        <rect x="568" y="190" width="316" height="118" rx="5"
+              fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5"/>
+        <text x="726" y="208" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#1E40AF">P1 AEROS Runtime</text>
+
+        <!-- ECM blocks in Robot B (2 ECMs) -->
+        <!-- ECM B1: Navigate (shared with A) -->
+        <rect x="625" y="216" width="86" height="80" rx="5"
+              fill="#DBEAFE" stroke="#2563EB" stroke-width="1"/>
+        <circle cx="668" cy="232" r="5" fill="#93C5FD" stroke="#2563EB" stroke-width="0.8"/>
+        <text x="668" y="250" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" font-weight="600" fill="#1E40AF">ECM</text>
+        <text x="668" y="264" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#3B82F6">Navigate</text>
+        <text x="668" y="288" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#94A3B8">v2.3</text>
+
+        <!-- ECM B2: Deliver -->
+        <rect x="741" y="216" width="86" height="80" rx="5"
+              fill="#DBEAFE" stroke="#2563EB" stroke-width="1"/>
+        <circle cx="784" cy="232" r="5" fill="#93C5FD" stroke="#2563EB" stroke-width="0.8"/>
+        <text x="784" y="250" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" font-weight="600" fill="#1E40AF">ECM</text>
+        <text x="784" y="264" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#3B82F6">Deliver</text>
+        <text x="784" y="288" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#94A3B8">v1.2</text>
+
+        <!-- Audit bar Robot B -->
+        <rect x="538" y="352" width="376" height="48" rx="6"
+              fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="4 3"/>
+        <text x="726" y="372" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" font-weight="500" fill="#64748B">
+          Audit Trail &middot; Execution Trace &middot; Recovery Log
+        </text>
+        <text x="726" y="388" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#94A3B8">
+          Human Supervisor H&#x2091;
+        </text>
+
+        <!-- ===== CONNECTIONS BETWEEN ROBOTS ===== -->
+        <!-- Connection 1: Shared Registry -->
+        <line x1="434" y1="230" x2="526" y2="230" stroke="#0891B2" stroke-width="1.2" stroke-dasharray="4 3"/>
+        <rect x="441" y="219" width="78" height="22" rx="11" fill="white" stroke="#0891B2" stroke-width="1"/>
+        <text x="480" y="234" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" font-weight="600" fill="#0891B2">Shared Registry</text>
+
+        <!-- Connection 2: Task Delegation -->
+        <line x1="434" y1="280" x2="526" y2="280" stroke="#0891B2" stroke-width="1.2" stroke-dasharray="4 3"/>
+        <rect x="441" y="269" width="78" height="22" rx="11" fill="white" stroke="#0891B2" stroke-width="1"/>
+        <text x="480" y="284" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" font-weight="600" fill="#0891B2">Task Delegation</text>
+
+        <!-- Connection 3: Fleet Recovery -->
+        <line x1="434" y1="330" x2="526" y2="330" stroke="#0891B2" stroke-width="1.2" stroke-dasharray="4 3"/>
+        <rect x="441" y="319" width="78" height="22" rx="11" fill="white" stroke="#0891B2" stroke-width="1"/>
+        <text x="480" y="334" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" font-weight="600" fill="#0891B2">Fleet Recovery</text>
+
+        <!-- ===== FLEET-LEVEL INFO ===== -->
+        <text x="480" y="440" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" font-weight="500" fill="#0891B2">
+          Fleet-Level: Shared ECM Discovery &middot; Trust-Scoped Delegation &middot; Policy Composition &middot; Layered Recovery
+        </text>
+        <text x="480" y="456" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#0891B2" fill-opacity="0.7">
+          Fleet Human Supervisor H&#x1D07;
+        </text>
+
+        <!-- ===== P7 EVALUATION PROBES ===== -->
+        <text x="480" y="510" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#DC2626" fill-opacity="0.6">
+          Evaluates: Authorization &middot; Drift &middot; Recovery &middot; Portability &middot; Upgrade Safety &middot; Human Override &middot; Audit Completeness
+        </text>
+
+      </svg>
+    </div>
+    <div class="diagram-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#2563EB"></div>P1 Runtime</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#7C3AED"></div>P5 Contracts</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#059669"></div>P2|P4 Evolution</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#D97706"></div>P3 Governance</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#0891B2"></div>P6 Federation</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#DC2626"></div>P7 Benchmark</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== NARRATIVE ==================== -->
+<section class="narrative">
+  <div class="container">
+    <h2>Research Narrative</h2>
+    <p class="lead">
+      Seven papers form a complete research program: from defining what an embodied agent runtime <em>is</em>, to how it <em>evolves</em>, how it is <em>governed</em>, how capabilities are <em>contracted</em>, how robots <em>federate</em>, and finally how the field should <em>measure</em> all of this.
+    </p>
+    <div class="timeline">
+
+      <div class="tl-item">
+        <div class="tl-dot">1</div>
+        <div class="tl-label">Architecture</div>
+        <div class="tl-title">AEROS &mdash; What is an embodied agent runtime?</div>
+        <div class="tl-desc">Defines the single-agent runtime and Embodied Capability Module (ECM) abstraction. Capabilities are installable, removable, and governable at runtime.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot">2</div>
+        <div class="tl-label">Evolution</div>
+        <div class="tl-title">How do capabilities grow without breaking the agent?</div>
+        <div class="tl-desc">Capability evolution through ECM versioning, replacement, and regression-aware upgrading &mdash; without altering the agent's identity or existing behaviors.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot">3</div>
+        <div class="tl-label">Governance</div>
+        <div class="tl-title">How does the runtime stay controllable during execution?</div>
+        <div class="tl-desc">Runtime governance layer: admission control, policy enforcement, behavioral watchers, structured recovery, and human override protocols.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot">4</div>
+        <div class="tl-label">Governed Evolution</div>
+        <div class="tl-title">When capabilities evolve, how does governance stay valid?</div>
+        <div class="tl-desc">Bridges evolution and governance: gated deployment, shadow mode testing, rollback conditions, and policy compatibility checking across capability versions.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot">5</div>
+        <div class="tl-label">Contracts</div>
+        <div class="tl-title">How do capability packages compose reliably?</div>
+        <div class="tl-desc">Six-dimensional contract model for ECMs: functional signature, behavioral assumptions, resource requirements, permission boundaries, recovery semantics, and version compatibility.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot">6</div>
+        <div class="tl-label">Federation</div>
+        <div class="tl-title">How do multiple robots coordinate without fragmenting each agent?</div>
+        <div class="tl-desc">Fleet coordination through federation across coherent single-agent runtimes: shared capability registries, trust-scoped delegation, layered recovery, and hierarchical human oversight.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot">7</div>
+        <div class="tl-label">Benchmark</div>
+        <div class="tl-title">How should the field measure all of this?</div>
+        <div class="tl-desc">EmbodiedGovBench: seven governance dimensions, six protocol families, single-robot and fleet evaluation tracks. The measurement layer that completes the research program.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PAPERS ==================== -->
+<section class="papers" id="papers">
+  <div class="container">
+    <h2>Paper Series</h2>
+    <p class="lead">All papers share unified terminology, author information, and cross-references.</p>
+
+    <!-- P1 -->
+    <div class="paper-card">
+      <div class="paper-num">P1</div>
+      <div class="paper-body">
+        <h3>AEROS: A Runtime Architecture for Embodied Agents with Installable Capability Modules</h3>
+        <div class="venue">Under review &middot; 2026</div>
+        <div class="desc">Defines the single-agent runtime and Embodied Capability Module (ECM) abstraction: what an embodied agent runtime <em>is</em>.</div>
+        <div class="paper-links">
+          <a href="https://arxiv.org/abs/2604.07039">arXiv</a>
+          <a href="https://github.com/s20sc/aeros">Code (paper)</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- P2 -->
+    <div class="paper-card">
+      <div class="paper-num">P2</div>
+      <div class="paper-body">
+        <h3>Learning Without Losing Identity: Capability Evolution for Embodied Agents</h3>
+        <div class="venue">Under review &middot; 2026</div>
+        <div class="desc">How capabilities evolve&mdash;grow, iterate, replace&mdash;without altering the agent's identity or breaking existing behaviors.</div>
+        <div class="paper-links">
+          <a href="https://arxiv.org/abs/2604.07799">arXiv</a>
+          <a href="https://github.com/s20sc/capability-evolution">Code (paper)</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- P3 -->
+    <div class="paper-card">
+      <div class="paper-num">P3</div>
+      <div class="paper-body">
+        <h3>Harnessing Embodied Agents: Runtime Governance for Policy-Constrained Execution</h3>
+        <div class="venue">Under review &middot; 2026</div>
+        <div class="desc">Runtime governance layer: admission control, policy enforcement, watcher, recovery, and human override.</div>
+        <div class="paper-links">
+          <a href="https://arxiv.org/abs/2604.07833">arXiv</a>
+          <a href="https://github.com/s20sc/harnessing-embodied-agents">Code (paper)</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- P4 -->
+    <div class="paper-card">
+      <div class="paper-num">P4</div>
+      <div class="paper-body">
+        <h3>Governed Capability Evolution for Embodied Agents</h3>
+        <div class="venue">Under review &middot; 2026</div>
+        <div class="desc">When capabilities evolve, how does governance remain continuously valid? Gated deployment, shadow mode, rollback, and policy compatibility.</div>
+        <div class="paper-links">
+          <a href="https://arxiv.org/abs/2604.08059">arXiv</a>
+          <a href="https://github.com/s20sc/governed-capability-evolution">Code (paper)</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- P5 -->
+    <div class="paper-card">
+      <div class="paper-num">P5</div>
+      <div class="paper-body">
+        <h3>ECM Contracts: Contract-Aware, Versioned, and Governable Capability Interfaces for Embodied Agents</h3>
+        <div class="venue">Under review &middot; 2026</div>
+        <div class="desc">Six-dimensional contract model for ECMs: functional signature, behavioral assumptions, resource requirements, permission boundaries, recovery semantics, and version compatibility.</div>
+        <div class="paper-links">
+          <a href="https://arxiv.org/abs/2604.13097">arXiv</a>
+          <a href="https://github.com/s20sc/ecm-contracts">Code (paper)</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- P6 -->
+    <div class="paper-card">
+      <div class="paper-num">P6</div>
+      <div class="paper-body">
+        <h3>Federated Single-Agent Robotics: Multi-Robot Coordination Without Intra-Robot Multi-Agent Fragmentation</h3>
+        <div class="venue">Under review &middot; 2026</div>
+        <div class="desc">Multi-robot coordination through federation across coherent single-agent runtimes, rather than fragmenting each robot into multiple agents.</div>
+        <div class="paper-links">
+          <a href="https://arxiv.org/abs/2604.11028">arXiv</a>
+          <a href="https://github.com/s20sc/fsar-fleet-coordination">Code (paper)</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- P7 -->
+    <div class="paper-card">
+      <div class="paper-num">P7</div>
+      <div class="paper-body">
+        <h3>EmbodiedGovBench: A Benchmark for Governance, Recovery, and Upgrade Safety in Embodied Agent Systems</h3>
+        <div class="venue">Under review &middot; 2026</div>
+        <div class="desc">Seven governance dimensions, six protocol families, single-robot and fleet tracks. The measurement layer of the research program.</div>
+        <div class="paper-links">
+          <a href="https://arxiv.org/abs/2604.11174">arXiv</a>
+          <a href="https://github.com/s20sc/embodied-gov-bench">Code (paper)</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ==================== BIBTEX ==================== -->
+<section class="bibtex" id="bibtex">
+  <div class="container">
+    <h2>Citation</h2>
+    <p class="lead">BibTeX entries for all papers in the series.</p>
+
+<div class="bib-block" id="bib-all"><button class="copy-btn" onclick="copyBib()">Copy All</button>@article{qin2026aeros,
+  title={AEROS: A Runtime Architecture for Embodied Agents with Installable Capability Modules},
+  author={Qin, Xue and Luan, Simin and See, John and Yang, Cong and Li, Zhijun},
+  journal={arXiv preprint arXiv:2604.07039},
+  year={2026}
+}
+
+@article{qin2026evolution,
+  title={Learning Without Losing Identity: Capability Evolution for Embodied Agents},
+  author={Qin, Xue and Luan, Simin and See, John and Yang, Cong and Li, Zhijun},
+  journal={arXiv preprint arXiv:2604.07799},
+  year={2026}
+}
+
+@article{qin2026governance,
+  title={Harnessing Embodied Agents: Runtime Governance for Policy-Constrained Execution},
+  author={Qin, Xue and Luan, Simin and See, John and Yang, Cong and Li, Zhijun},
+  journal={arXiv preprint arXiv:2604.07833},
+  year={2026}
+}
+
+@article{qin2026governed,
+  title={Governed Capability Evolution for Embodied Agents},
+  author={Qin, Xue and Luan, Simin and See, John and Yang, Cong and Li, Zhijun},
+  journal={arXiv preprint arXiv:2604.08059},
+  year={2026}
+}
+
+@article{qin2026contracts,
+  title={ECM Contracts: Contract-Aware, Versioned, and Governable Capability Interfaces for Embodied Agents},
+  author={Qin, Xue and Luan, Simin and See, John and Yang, Cong and Li, Zhijun},
+  journal={arXiv preprint arXiv:2604.13097},
+  year={2026}
+}
+
+@article{qin2026fsar,
+  title={Federated Single-Agent Robotics: Multi-Robot Coordination Without Intra-Robot Multi-Agent Fragmentation},
+  author={Qin, Xue and Luan, Simin and See, John and Yang, Cong and Li, Zhijun},
+  journal={arXiv preprint arXiv:2604.11028},
+  year={2026}
+}
+
+@article{qin2026embodiedgovbench,
+  title={EmbodiedGovBench: A Benchmark for Governance, Recovery, and Upgrade Safety in Embodied Agent Systems},
+  author={Qin, Xue and Luan, Simin and See, John and Yang, Cong and Li, Zhijun},
+  journal={arXiv preprint arXiv:2604.11174},
+  year={2026}
+}</div>
+
+  </div>
+</section>
+
+<!-- ==================== AUTHORS ==================== -->
+<section class="authors" id="authors">
+  <div class="container">
+    <h2>Authors</h2>
+    <div class="author-grid">
+      <div class="author-item">
+        <div class="name">Xue Qin</div>
+        <div class="affil">Harbin Institute of Technology</div>
+        <div class="affil">School of Software</div>
+      </div>
+      <div class="author-item">
+        <div class="name">Simin Luan</div>
+        <div class="affil">Harbin Institute of Technology</div>
+        <div class="affil">School of Computer Science</div>
+      </div>
+      <div class="author-item">
+        <div class="name">John See</div>
+        <div class="affil">Heriot-Watt University</div>
+        <div class="affil">Malaysia Campus</div>
+      </div>
+      <div class="author-item">
+        <div class="name">Cong Yang*</div>
+        <div class="affil">Soochow University</div>
+        <div class="affil">School of Future Sci. &amp; Eng.</div>
+        <div class="corresponding">Corresponding author</div>
+      </div>
+      <div class="author-item">
+        <div class="name">Zhijun Li*</div>
+        <div class="affil">Harbin Institute of Technology</div>
+        <div class="affil">School of Computer Science</div>
+        <div class="corresponding">Corresponding author</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer>
+  <div class="container">
+    &copy; 2026 AEROS Project &middot;
+    <a href="https://github.com/s20sc/aeros-project" style="color: var(--blue);">GitHub</a>
+  </div>
+</footer>
+
+<script>
+function copyBib() {
+  const bib = document.getElementById('bib-all').innerText.replace('Copy All', '').trim();
+  navigator.clipboard.writeText(bib).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy All', 2000);
+  });
+}
+</script>
+
+</body>
+</html>
