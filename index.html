@@ -3,738 +3,1473 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AEROS Project — Embodied Agent Runtime Research Program</title>
-<meta name="description" content="A seven-paper research program on runtime architecture, governance, evolution, contracts, federation, and benchmarking for embodied agent systems.">
+<title>AEROS Project — A research program on identity-stable embodied agents</title>
+<meta name="description" content="Fifteen papers on embodied agent runtimes: foundation, deployment engineering, and identity-stable longevity. Three nested theses, one persistent identity.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
+  /* ====================================================================
+     AEROS PROJECT SITE V3
+     Design philosophy: Concentric Restraint
+     Three nested theses; one byte-equal centre.
+     ==================================================================== */
+
   :root {
-    --blue: #2E5FA1;
-    --dark: #1a1a2e;
-    --gray: #f8f9fa;
-    --border: #e0e0e0;
-    --text: #333;
-    --light-text: #666;
-    --accent: #e8f0fe;
+    --substrate: #0a0e1a;
+    --substrate-2: #131826;
+    --paper: #f5f4f0;
+    --paper-dim: #c8c5bd;
+    --paper-mute: #8a8780;
+
+    --inner-ring: #3854b8;    /* foundation: cobalt */
+    --middle-ring: #b8682e;   /* deployment engineering: burnt amber */
+    --outer-ring: #5a3a7a;    /* longevity engineering: aubergine */
+
+    --hairline: rgba(245, 244, 240, 0.16);
+    --hairline-strong: rgba(245, 244, 240, 0.32);
+
+    /* V4 (2026-05-14): widen all containers to match masthead.
+       V3 used 720 / 920 / 1100; V4 unifies at 1360 so every
+       section spans the same width as the title row. */
+    --content-w: 1360px;
+    --paper-w: 1360px;
+    --diagram-w: 1360px;
+    --masthead-w: 1360px;
+
+    --serif: "Spectral", "Lyon Text", "Charter", Georgia, serif;
+    --mono: "JetBrains Mono", "Berkeley Mono", "SF Mono", Menlo, monospace;
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
 
   body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    color: var(--text);
-    line-height: 1.7;
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--paper);
+    background: var(--substrate);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 
-  /* Hero */
+  /* === Layout primitives === */
+
+  .col {
+    max-width: var(--content-w);
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+  .col-wide {
+    max-width: var(--diagram-w);
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  /* === Top frame: minimal masthead === */
+
+  .masthead {
+    border-bottom: 1px solid var(--hairline);
+    padding: 1.4rem 0 1.3rem;
+  }
+  .masthead .col-wide {
+    max-width: var(--masthead-w);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2.4rem;
+  }
+  .masthead .title {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--paper);
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  .masthead .meta {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    color: var(--paper-mute);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 0.6em;
+    white-space: nowrap;
+  }
+  .masthead .status-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #83C4C2;
+    box-shadow: 0 0 8px rgba(131, 196, 194, 0.7);
+    animation: status-dot 2.4s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .masthead .status-dot { animation: none; }
+  }
+  .masthead nav {
+    display: flex;
+    flex: 1 1 auto;
+    gap: 1.6rem;
+    justify-content: space-between;
+    min-width: 0;
+    padding: 0 1.2rem;  /* small breathing room from title/meta */
+  }
+  .masthead nav a {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--paper-mute);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color .35s ease, letter-spacing .35s ease;
+  }
+  .masthead nav a:hover {
+    color: var(--paper);
+    letter-spacing: 0.14em;
+  }
+
+  /* === Hero === */
+
   .hero {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    color: white;
-    padding: 80px 20px 60px;
-    text-align: center;
+    padding: 6rem 0 5rem;
+    position: relative;
   }
+  .hero .hero-grid {
+    max-width: var(--diagram-w);
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+
   .hero h1 {
-    font-size: 2.8em;
-    font-weight: 700;
-    margin-bottom: 8px;
-    letter-spacing: -0.5px;
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 2.6rem;
+    line-height: 1.18;
+    letter-spacing: -0.012em;
+    color: var(--paper);
+    margin-bottom: 1.8rem;
   }
-  .hero h1 span { color: #64b5f6; }
-  .hero .subtitle {
-    font-size: 1.25em;
-    color: #b0bec5;
-    max-width: 750px;
-    margin: 0 auto 30px;
-    font-weight: 300;
+  .hero h1 em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--paper);
+  }
+  .hero h1 em.identity-emphasis {
+    color: #83c4c2;
+    /* Keep the teal-italic phrase together on one line so it
+       reads as a single semantic unit ("the same robot"). */
+    white-space: nowrap;
+  }
+  /* Parenthetical "like a person across decades" — subtly
+     de-emphasised so it reads as an appositive rather than
+     competing with the main claim. */
+  .hero h1 .aside {
+    color: var(--paper-dim);
+    font-style: italic;
+    white-space: nowrap;
+  }
+  /* (h1-break removed in v4 since the natural wrap with the
+     "like a person across decades" aside is already balanced.) */
+  .hero .brand-emphasis {
+    font-family: var(--mono);
+    font-size: 0.92em;
+    letter-spacing: 0.12em;
+    color: #83c4c2;
   }
   .hero .tagline {
-    display: inline-block;
-    background: rgba(100, 181, 246, 0.15);
-    border: 1px solid rgba(100, 181, 246, 0.3);
-    border-radius: 20px;
-    padding: 6px 20px;
-    font-size: 0.9em;
-    color: #90caf9;
-    margin-bottom: 30px;
-  }
-  .hero-links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-  .hero-links a {
-    display: inline-block;
-    padding: 10px 24px;
-    border-radius: 6px;
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 0.95em;
-    transition: all 0.2s;
-  }
-  .btn-primary { background: #64b5f6; color: #1a1a2e; }
-  .btn-primary:hover { background: #90caf9; }
-  .btn-secondary { background: transparent; color: #b0bec5; border: 1px solid #b0bec5; }
-  .btn-secondary:hover { color: white; border-color: white; }
-
-  /* Container */
-  .container { max-width: 960px; margin: 0 auto; padding: 0 20px; }
-
-  /* Narrative */
-  .narrative {
-    padding: 60px 20px;
-    background: white;
-  }
-  .narrative h2 {
-    font-size: 1.8em;
-    color: var(--dark);
-    margin-bottom: 12px;
-    text-align: center;
-  }
-  .narrative .lead {
-    text-align: center;
-    color: var(--light-text);
-    max-width: 700px;
-    margin: 0 auto 40px;
-    font-size: 1.05em;
-  }
-
-  /* Vertical Timeline */
-  .timeline {
-    position: relative;
-    max-width: 700px;
-    margin: 0 auto;
-    padding: 0 0 0 40px;
-  }
-  .timeline::before {
-    content: '';
-    position: absolute;
-    left: 15px;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: linear-gradient(to bottom, #64b5f6, var(--blue), #1a1a2e);
-  }
-  .tl-item {
-    position: relative;
-    margin-bottom: 28px;
-    padding-left: 24px;
-  }
-  .tl-item:last-child { margin-bottom: 0; }
-  .tl-dot {
-    position: absolute;
-    left: -32px;
-    top: 4px;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: var(--blue);
-    color: white;
-    font-size: 0.7em;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 3px solid white;
-    box-shadow: 0 0 0 2px var(--blue);
-  }
-  .tl-label {
-    font-weight: 600;
-    color: var(--blue);
-    font-size: 0.82em;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 2px;
+    color: var(--paper-mute);
+    margin-bottom: 2.4rem;
   }
-  .tl-title {
-    font-weight: 600;
-    font-size: 1em;
-    color: var(--dark);
-    margin-bottom: 4px;
-  }
-  .tl-desc {
-    font-size: 0.88em;
-    color: #555;
-    line-height: 1.5;
-  }
-
-  /* Architecture Diagram */
-  .diagram {
-    padding: 60px 20px 50px;
-    background: var(--gray);
-  }
-  .diagram h2 {
-    font-size: 1.8em;
-    color: var(--dark);
-    margin-bottom: 12px;
-    text-align: center;
-  }
-  .diagram .lead {
-    text-align: center;
-    color: var(--light-text);
-    max-width: 720px;
-    margin: 0 auto 30px;
-    font-size: 1.05em;
-  }
-  .diagram-card {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.07);
-    padding: 20px 20px 16px;
-    max-width: 920px;
-    margin: 0 auto 16px;
-    overflow-x: auto;
-  }
-  .diagram-legend {
-    display: flex;
-    justify-content: center;
-    gap: 18px;
-    flex-wrap: wrap;
-    max-width: 920px;
-    margin: 0 auto;
-    font-size: 0.8em;
-    color: var(--light-text);
-  }
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .legend-dot {
-    width: 10px;
-    height: 10px;
+  .hero .tagline .pip {
+    display: inline-block;
+    width: 0.4em; height: 0.4em;
     border-radius: 50%;
-    flex-shrink: 0;
+    background: var(--paper-mute);
+    margin: 0 0.6em;
+    vertical-align: 0.18em;
+  }
+  .hero .lead {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: var(--paper-dim);
+    max-width: 32rem;
+    margin-bottom: 2.6rem;
+    /* Let modern browsers auto-balance to avoid orphan last-word
+       lines; the &nbsp; in "shipped runtime evidence" is a fallback
+       for older engines that lack text-wrap: pretty. */
+    text-wrap: pretty;
+  }
+  .hero .lead em {
+    font-style: italic;
+    color: var(--paper);
   }
 
-  /* Papers */
-  .papers {
-    padding: 60px 20px;
-    background: var(--gray);
-  }
-  .papers h2 {
-    font-size: 1.8em;
-    color: var(--dark);
-    margin-bottom: 8px;
-    text-align: center;
-  }
-  .papers .lead {
-    text-align: center;
-    color: var(--light-text);
-    margin-bottom: 40px;
-  }
-  .paper-card {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 24px 28px;
-    margin-bottom: 16px;
+  .hero-cta {
     display: flex;
-    align-items: flex-start;
-    gap: 20px;
-    transition: box-shadow 0.2s;
+    gap: 1.6rem;
+    align-items: baseline;
   }
-  .paper-card:hover {
-    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  .hero-cta a {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--paper);
+    border-bottom: 1px solid var(--hairline-strong);
+    padding-bottom: 0.35rem;
+    transition: color .3s ease, border-color .3s ease, letter-spacing .3s ease;
   }
-  .paper-num {
-    background: var(--blue);
-    color: white;
-    font-weight: 700;
-    font-size: 0.85em;
-    min-width: 36px;
-    height: 36px;
-    border-radius: 8px;
+  .hero-cta a:hover {
+    color: var(--paper);
+    border-color: var(--paper);
+    letter-spacing: 0.18em;
+  }
+  .hero-cta a.secondary {
+    color: var(--paper-mute);
+    border-color: var(--hairline);
+  }
+  .hero-cta a.secondary:hover {
+    color: var(--paper);
+    border-color: var(--paper-mute);
+  }
+
+  /* === Rings SVG: the centerpiece === */
+
+  .rings-frame {
+    aspect-ratio: 1;
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-    margin-top: 2px;
+    background-image:
+      linear-gradient(rgba(56, 84, 184, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(56, 84, 184, 0.045) 1px, transparent 1px);
+    background-size: 32px 32px;
+    background-position: center center;
   }
-  .paper-body { flex: 1; }
-  .paper-body h3 {
-    font-size: 1.05em;
-    margin-bottom: 4px;
-    color: var(--dark);
+  .rings-frame::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at center, transparent 50%, var(--substrate) 92%);
   }
-  .paper-body .venue {
-    font-size: 0.82em;
-    color: var(--light-text);
-    margin-bottom: 6px;
+  .rings-frame::after {
+    content: "AEROS · IDENTITY-STABLE EMBODIED AGENT RUNTIME · v3 · 2026";
+    position: absolute;
+    left: 50%;
+    bottom: -1rem;
+    transform: translateX(-50%);
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.32em;
+    color: var(--paper-mute);
+    opacity: 0.5;
+    white-space: nowrap;
+    pointer-events: none;
   }
-  .paper-body .desc {
-    font-size: 0.9em;
-    color: #555;
-    margin-bottom: 8px;
+  .rings-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
   }
-  .paper-links { display: flex; gap: 8px; flex-wrap: wrap; }
-  .paper-links a {
-    font-size: 0.8em;
-    padding: 3px 10px;
-    border-radius: 4px;
-    text-decoration: none;
-    border: 1px solid var(--border);
-    color: var(--blue);
-    transition: all 0.2s;
+  @keyframes ping-inner {
+    0%   { r: 38;  opacity: 0;    stroke-width: 1.4; }
+    8%   { opacity: 0.6; }
+    70%  { opacity: 0.18; }
+    95%  { r: 110; opacity: 0.5; stroke-width: 0.9; }
+    100% { r: 110; opacity: 0;   stroke-width: 0.6; }
   }
-  .paper-links a:hover {
-    background: var(--accent);
-    border-color: var(--blue);
+  @keyframes ping-middle {
+    0%   { r: 38;  opacity: 0;    stroke-width: 1.4; }
+    8%   { opacity: 0.55; }
+    70%  { opacity: 0.18; }
+    95%  { r: 160; opacity: 0.45; stroke-width: 0.9; }
+    100% { r: 160; opacity: 0;    stroke-width: 0.6; }
+  }
+  @keyframes ping-outer {
+    0%   { r: 38;  opacity: 0;    stroke-width: 1.4; }
+    8%   { opacity: 0.5; }
+    70%  { opacity: 0.15; }
+    95%  { r: 210; opacity: 0.4; stroke-width: 0.9; }
+    100% { r: 210; opacity: 0;   stroke-width: 0.6; }
+  }
+  @keyframes core-pulse {
+    0%, 100% { opacity: 0.85; }
+    50%      { opacity: 0.55; }
+  }
+  @keyframes hex-flicker {
+    0%, 88%, 92%, 100% { opacity: 1; }
+    89%, 91%           { opacity: 0.35; }
+  }
+  @keyframes node-blink {
+    0%, 92%, 100% { opacity: 1; }
+    96%           { opacity: 0.45; }
+  }
+  @keyframes status-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.4; transform: scale(0.7); }
+  }
+  .rings-svg .ping-1      { animation: ping-inner  6s cubic-bezier(.2,.6,.4,1) infinite; }
+  .rings-svg .ping-2      { animation: ping-middle 6s cubic-bezier(.2,.6,.4,1) infinite; animation-delay: 2s; }
+  .rings-svg .ping-3      { animation: ping-outer  6s cubic-bezier(.2,.6,.4,1) infinite; animation-delay: 4s; }
+  .rings-svg .core-aura   { animation: core-pulse 4s ease-in-out infinite; }
+  .rings-svg .hex-line    { animation: hex-flicker 7s linear infinite; }
+  .rings-svg .node-dot    { animation: node-blink 4s linear infinite; }
+  @media (prefers-reduced-motion: reduce) {
+    .rings-svg .ring-outer, .rings-svg .ring-middle, .rings-svg .ring-inner,
+    .rings-svg .radar, .rings-svg .ping-1, .rings-svg .ping-2, .rings-svg .ping-3,
+    .rings-svg .core-aura, .rings-svg .hex-line, .rings-svg .node-dot {
+      animation: none;
+    }
   }
 
-  /* BibTeX */
-  .bibtex {
-    padding: 60px 20px;
-    background: white;
+  /* === Section: three-thesis overview === */
+
+  .three-thesis {
+    padding: 5rem 0 5rem;
+    border-top: 1px solid var(--hairline);
   }
-  .bibtex h2 {
-    font-size: 1.8em;
-    color: var(--dark);
-    margin-bottom: 8px;
-    text-align: center;
+  .three-thesis .col-wide {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3rem;
   }
-  .bibtex .lead {
-    text-align: center;
-    color: var(--light-text);
-    margin-bottom: 30px;
+  .thesis-card {
+    padding-top: 0.5rem;
   }
-  .bib-block {
-    background: #f5f5f5;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 20px;
-    font-family: 'SFMono-Regular', 'Consolas', monospace;
-    font-size: 0.78em;
+  .thesis-card .roman {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 3.4rem;
+    line-height: 1;
+    margin-bottom: 1.4rem;
+    font-weight: 300;
+  }
+  .thesis-card.t1 .roman { color: var(--inner-ring); }
+  .thesis-card.t2 .roman { color: var(--middle-ring); }
+  .thesis-card.t3 .roman { color: var(--outer-ring); }
+  .thesis-card h3 {
+    font-family: var(--serif);
+    font-size: 1.32rem;
+    font-weight: 500;
+    line-height: 1.32;
+    margin-bottom: 0.6rem;
+    color: var(--paper);
+  }
+  .thesis-card .scope {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--paper-mute);
+    margin-bottom: 1.2rem;
+  }
+  .thesis-card p {
+    font-size: 0.98rem;
+    line-height: 1.62;
+    color: var(--paper-dim);
+  }
+  .thesis-card p em {
+    font-style: italic;
+    color: var(--paper);
+  }
+
+  /* === Long-form sections === */
+
+  section.ring-section {
+    padding: 6rem 0 4rem;
+    border-top: 1px solid var(--hairline);
+  }
+  section.ring-section > .col {
+    max-width: var(--paper-w);
+  }
+  section.ring-section .ring-marker {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--paper-mute);
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8em;
+  }
+  section.ring-section .ring-marker::before {
+    content: "";
+    display: inline-block;
+    width: 1.6em; height: 1px;
+    background: var(--paper-mute);
+  }
+  section.ring-section.inner-ring .ring-marker { color: var(--inner-ring); }
+  section.ring-section.inner-ring .ring-marker::before { background: var(--inner-ring); }
+  section.ring-section.middle-ring .ring-marker { color: var(--middle-ring); }
+  section.ring-section.middle-ring .ring-marker::before { background: var(--middle-ring); }
+  section.ring-section.outer-ring .ring-marker { color: var(--outer-ring); }
+  section.ring-section.outer-ring .ring-marker::before { background: var(--outer-ring); }
+
+  section.ring-section h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 2rem;
+    line-height: 1.2;
+    margin-bottom: 1.4rem;
+    color: var(--paper);
+    letter-spacing: -0.008em;
+  }
+  section.ring-section h2 em {
+    font-style: italic;
+    font-weight: 400;
+  }
+  section.ring-section .standfirst {
+    font-family: var(--serif);
+    font-size: 1.12rem;
     line-height: 1.6;
+    color: var(--paper-dim);
+    max-width: var(--paper-w);
+    margin-bottom: 3rem;
+    font-style: italic;
+  }
+
+  /* === Paper entries === */
+
+  .papers {
+    max-width: var(--paper-w);
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+  .paper-entry {
+    display: grid;
+    grid-template-columns: 4.5rem 1fr;
+    gap: 1.8rem;
+    padding: 1.6rem 0;
+    border-bottom: 1px solid var(--hairline);
+    transition: opacity .35s ease;
+  }
+  .paper-entry:last-child { border-bottom: none; }
+  .papers:hover .paper-entry { opacity: 0.55; }
+  .papers .paper-entry:hover { opacity: 1; }
+  .paper-entry .pid {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    color: var(--paper-mute);
+    text-align: right;
+    padding-top: 0.3rem;
+  }
+  .inner-ring .paper-entry .pid { color: var(--inner-ring); }
+  .middle-ring .paper-entry .pid { color: var(--middle-ring); }
+  .outer-ring .paper-entry .pid { color: var(--outer-ring); }
+  .paper-entry h4 {
+    font-family: var(--serif);
+    font-size: 1.04rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--paper);
+    margin-bottom: 0.4rem;
+  }
+  .paper-entry .venue {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--paper-mute);
+    margin-bottom: 0.7rem;
+  }
+  .paper-entry .venue .rank {
+    color: var(--paper-dim);
+  }
+  .paper-entry .one-line {
+    font-size: 0.96rem;
+    line-height: 1.58;
+    color: var(--paper-dim);
+    margin-bottom: 0.55rem;
+  }
+  .paper-entry .links {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    display: flex;
+    gap: 1.2rem;
+  }
+  .paper-entry .links a {
+    color: var(--paper-mute);
+    text-decoration: none;
+    border-bottom: 1px solid var(--hairline);
+    padding-bottom: 0.15rem;
+    transition: color .3s ease, border-color .3s ease;
+  }
+  .paper-entry .links a:hover {
+    color: var(--paper);
+    border-color: var(--paper-mute);
+  }
+
+  /* === Architecture diagram === */
+
+  .architecture {
+    padding: 6rem 0 4rem;
+    border-top: 1px solid var(--hairline);
+  }
+  .architecture .arch-grid {
+    max-width: var(--diagram-w);
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 4rem;
+    align-items: start;
+  }
+  .architecture .ring-marker {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--paper-mute);
+    margin-bottom: 0.8rem;
+  }
+  .architecture h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 2rem;
+    line-height: 1.2;
+    margin-bottom: 1.4rem;
+    color: var(--paper);
+  }
+  .architecture p {
+    font-size: 1rem;
+    line-height: 1.65;
+    color: var(--paper-dim);
+    margin-bottom: 1rem;
+  }
+  .architecture .arch-svg-wrap {
+    border-left: 1px solid var(--hairline);
+    padding-left: 3rem;
+  }
+  .arch-svg {
+    width: 100%;
+    height: auto;
+  }
+  .arch-layer-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    fill: var(--paper);
+  }
+  .arch-layer-meta {
+    font-family: var(--mono);
+    font-size: 8.4px;
+    letter-spacing: 0.06em;
+    fill: var(--paper-mute);
+  }
+
+  /* === Concept dictionary table === */
+
+  .dictionary {
+    padding: 5rem 0;
+    border-top: 1px solid var(--hairline);
+  }
+  .dictionary h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 1.7rem;
+    margin-bottom: 0.6rem;
+    color: var(--paper);
+  }
+  .dictionary .ring-marker {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--paper-mute);
+    margin-bottom: 0.8rem;
+  }
+  .dictionary .standfirst {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.04rem;
+    color: var(--paper-dim);
+    margin-bottom: 2.5rem;
+    max-width: var(--content-w);
+  }
+  .dictionary dl {
+    max-width: var(--diagram-w);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 3rem;
+  }
+  .dictionary dl > div {
+    display: block;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .dictionary dl > div:nth-last-child(-n+2) { border-bottom: none; }
+  .dictionary dt {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    color: var(--paper);
+    line-height: 1.4;
+    margin-bottom: 0.45rem;
+  }
+  .dictionary dd {
+    font-size: 0.96rem;
+    line-height: 1.58;
+    color: var(--paper-dim);
+  }
+
+  /* === Citation === */
+
+  .citation {
+    padding: 5rem 0;
+    border-top: 1px solid var(--hairline);
+  }
+  .citation .ring-marker {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--paper-mute);
+    margin-bottom: 0.8rem;
+  }
+  .citation h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 1.7rem;
+    margin-bottom: 1rem;
+    color: var(--paper);
+  }
+  .citation .standfirst {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.04rem;
+    color: var(--paper-dim);
+    margin-bottom: 2.5rem;
+  }
+  .citation pre {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    line-height: 1.65;
+    color: var(--paper-dim);
+    border-left: 1px solid var(--hairline-strong);
+    padding: 0.4rem 1.2rem;
     overflow-x: auto;
     white-space: pre;
-    position: relative;
-    margin-bottom: 16px;
   }
-  .copy-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: var(--blue);
-    color: white;
-    border: none;
-    padding: 4px 12px;
-    border-radius: 4px;
+  .citation .toggle {
+    margin-top: 1.5rem;
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--paper-mute);
     cursor: pointer;
-    font-size: 0.85em;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--hairline);
+    padding: 0 0 0.3rem;
+    transition: color .3s ease, border-color .3s ease;
   }
-  .copy-btn:hover { background: #1e4a8a; }
+  .citation .toggle:hover { color: var(--paper); border-color: var(--paper-mute); }
+  .citation .more {
+    display: none;
+    margin-top: 1.5rem;
+  }
+  .citation .more.open { display: block; }
 
-  /* Authors */
+  /* === Authors === */
+
   .authors {
-    padding: 60px 20px;
-    background: var(--gray);
+    padding: 5rem 0 4rem;
+    border-top: 1px solid var(--hairline);
+  }
+  .authors .ring-marker {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--paper-mute);
+    margin-bottom: 0.8rem;
   }
   .authors h2 {
-    font-size: 1.8em;
-    color: var(--dark);
-    margin-bottom: 30px;
-    text-align: center;
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 1.7rem;
+    margin-bottom: 2rem;
+    color: var(--paper);
   }
-  .author-grid {
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-    flex-wrap: wrap;
+  .authors-grid {
+    display: grid;
+    /* V4: cap at 3 columns max so cards don't get spread too thin
+       when content-w widens. Cards stay readable at ~280-320px wide. */
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem 2.4rem;
+    /* V4: authors section anchored to its own narrower width
+       (~1000px) regardless of --content-w; author content doesn't
+       benefit from full 1360px stretch. */
+    max-width: 1040px;
   }
-  .author-item {
-    text-align: center;
-    min-width: 140px;
+  /* V4: all authors get a left-edge color band that encodes
+     affiliation. Color is supplied per-author via --affil-color
+     custom prop (set by .affil-* classes below). */
+  .author {
+    padding-left: 0.9rem;
+    border-left: 2px solid var(--affil-color, var(--paper-mute));
   }
-  .author-item .name {
-    font-weight: 600;
-    font-size: 1em;
-    color: var(--dark);
+  .author.lead-author {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(16rem, 0.9fr) 1.1fr;
+    gap: 2rem;
+    align-items: end;
+    padding: 0.2rem 0 1.8rem 1.4rem;
+    margin-bottom: 0.4rem;
+    border-bottom: 1px solid var(--hairline);
+    border-left: 3px solid var(--affil-color, var(--paper-mute));
   }
-  .author-item .affil {
-    font-size: 0.8em;
-    color: var(--light-text);
-    margin-top: 2px;
-  }
-  .author-item .corresponding {
-    font-size: 0.75em;
-    color: var(--blue);
+  /* Corresponding marker (italic em in name) gets the
+     affiliation tint so the role label aligns with the band */
+  .author.corresponding .name em {
+    color: var(--affil-color, var(--paper-mute));
+    opacity: 0.85;
   }
 
-  /* Footer */
-  footer {
-    text-align: center;
-    padding: 30px 20px;
-    color: var(--light-text);
+  /* === Institution color encoding === */
+  /* HIT (Harbin Inst. of Tech.) → cobalt (inner ring) */
+  .affil-hit        { --affil-color: var(--inner-ring); }
+  /* HWU Malaysia → burnt amber (middle ring) */
+  .affil-hwu        { --affil-color: var(--middle-ring); }
+  /* Fraunhofer → aubergine (outer ring) */
+  .affil-fraunhofer { --affil-color: var(--outer-ring); }
+  /* Soochow → teal (status-dot) — distinct 4th hue */
+  .affil-soochow    { --affil-color: #83C4C2; }
+  .author.lead-author .role {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--inner-ring);
+    margin-bottom: 0.7rem;
+  }
+  .author .name {
+    font-family: var(--serif);
+    font-size: 1.06rem;
+    font-weight: 500;
+    color: var(--paper);
+    margin-bottom: 0.3rem;
+  }
+  .author.lead-author .name {
+    font-size: 2.15rem;
+    line-height: 1;
+    margin-bottom: 0;
+  }
+  .author .name em {
+    font-style: italic;
+    color: var(--paper-mute);
+    font-weight: 400;
     font-size: 0.85em;
-    border-top: 1px solid var(--border);
+  }
+  .author .affil {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    color: var(--paper-mute);
+    line-height: 1.55;
+  }
+  .author.lead-author .affil {
+    color: var(--paper-dim);
+    font-size: 0.8rem;
   }
 
-  @media (max-width: 600px) {
-    .hero h1 { font-size: 1.8em; }
-    .paper-card { flex-direction: column; gap: 10px; }
-    .flow-item { min-width: 80px; font-size: 0.75em; padding: 6px 10px; }
-    .flow-arrow { font-size: 1em; }
+  /* === Footer === */
+
+  footer {
+    padding: 3rem 0 4rem;
+    border-top: 1px solid var(--hairline);
+  }
+  footer .col-wide {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--paper-mute);
+  }
+  footer a {
+    color: var(--paper-mute);
+    text-decoration: none;
+    border-bottom: 1px solid var(--hairline);
+    padding-bottom: 0.15rem;
+    transition: color .3s ease, border-color .3s ease;
+  }
+  footer a:hover { color: var(--paper); border-color: var(--paper-mute); }
+
+  /* === Responsive === */
+
+  @media (max-width: 1240px) {
+    .masthead .col-wide { flex-direction: column; align-items: flex-start; gap: 0.7rem; }
+    .masthead nav { justify-content: flex-start; flex-wrap: wrap; row-gap: 0.5rem; }
+  }
+  @media (max-width: 920px) {
+    .hero .hero-grid { grid-template-columns: 1fr; gap: 3rem; }
+    .three-thesis .col-wide { grid-template-columns: 1fr; gap: 3rem; }
+    .architecture .arch-grid { grid-template-columns: 1fr; gap: 2rem; }
+    .architecture .arch-svg-wrap { border-left: none; padding-left: 0; }
+    .dictionary dl { grid-template-columns: 1fr; }
+    .dictionary dl > div:nth-last-child(2) { border-bottom: 1px solid var(--hairline); }
+    .authors-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 620px) {
+    body { font-size: 16px; }
+    .hero h1 { font-size: 2rem; }
+    .hero { padding: 3rem 0 3rem; }
+    section.ring-section h2 { font-size: 1.6rem; }
+    .paper-entry { grid-template-columns: 3rem 1fr; gap: 1rem; }
+    .author.lead-author { grid-template-columns: 1fr; gap: 0.8rem; }
+    .author.lead-author .name { font-size: 1.8rem; }
+    .authors-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 
+<!-- ==================== MASTHEAD ==================== -->
+<header class="masthead">
+  <div class="col-wide">
+    <div class="title">AEROS &nbsp;·&nbsp; A Research Programme</div>
+    <nav>
+      <a href="#thesis">Thesis</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#foundation">Foundation</a>
+      <a href="#deployment">Deployment</a>
+      <a href="#longevity">Longevity</a>
+      <a href="#citation">Cite</a>
+    </nav>
+    <div class="meta"><span class="status-dot" aria-hidden="true"></span>Programme active &nbsp;·&nbsp; 15 papers</div>
+  </div>
+</header>
+
 <!-- ==================== HERO ==================== -->
 <section class="hero">
-  <div class="tagline">7-Paper Research Program &middot; Architecture &rarr; Governance &rarr; Benchmark</div>
-  <h1><span>AEROS</span> Project</h1>
-  <p class="subtitle">
-    A systematic research program on runtime architecture, governance, evolution, contracts, federation, and benchmarking for embodied agent systems.
-  </p>
-  <div class="hero-links">
-    <a href="#papers" class="btn-primary">Paper Series</a>
-    <a href="#bibtex" class="btn-secondary">BibTeX</a>
+  <div class="hero-grid">
+    <div>
+      <div class="tagline">Three theses<span class="pip"></span>fifteen papers<span class="pip"></span>one byte-equal centre</div>
+      <h1>A robot, <span class="aside">like a person across decades,</span> should remain <em class="identity-emphasis">the same robot</em> across years of lived experience, module updates, and operational maturation.</h1>
+      <p class="lead">
+        The <span class="brand-emphasis">AEROS</span> research programme defends one engineering proposition in fifteen papers: an embodied agent's identity certificate can be held <em>byte-equal</em> across module updates, persistent memory growth, cross-deployment migration, and multi-year operational maturation. The programme nests three theses around one invariant — runtime governance, deployment engineering, and identity-stable longevity — and grounds each in shipped&nbsp;runtime&nbsp;evidence.
+      </p>
+      <div class="hero-cta">
+        <a href="#foundation">Read the programme &nbsp;→</a>
+        <a class="secondary" href="#citation">BibTeX</a>
+      </div>
+    </div>
+
+    <!-- Three concentric rings centerpiece -->
+    <div class="rings-frame" aria-hidden="true">
+      <svg class="rings-svg" viewBox="-260 -260 520 520" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <!-- Soft white aura behind the core -->
+          <radialGradient id="core-glow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stop-color="#f5f4f0" stop-opacity="0.95"/>
+            <stop offset="55%"  stop-color="#f5f4f0" stop-opacity="0.08"/>
+            <stop offset="100%" stop-color="#f5f4f0" stop-opacity="0"/>
+          </radialGradient>
+          <!-- Radar sweep trail (narrow wedge, used as soft trail behind the sweep line) -->
+          <linearGradient id="sweep-fade" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="#f5f4f0" stop-opacity="0"/>
+            <stop offset="60%"  stop-color="#f5f4f0" stop-opacity="0.08"/>
+            <stop offset="100%" stop-color="#f5f4f0" stop-opacity="0.18"/>
+          </linearGradient>
+          <!-- Node glow filters per ring colour -->
+          <filter id="glow-purple" x="-200%" y="-200%" width="500%" height="500%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3.4"/>
+            <feComponentTransfer><feFuncA type="linear" slope="1.4"/></feComponentTransfer>
+          </filter>
+          <filter id="glow-amber" x="-200%" y="-200%" width="500%" height="500%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2.8"/>
+            <feComponentTransfer><feFuncA type="linear" slope="1.4"/></feComponentTransfer>
+          </filter>
+          <filter id="glow-cobalt" x="-200%" y="-200%" width="500%" height="500%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2.2"/>
+            <feComponentTransfer><feFuncA type="linear" slope="1.4"/></feComponentTransfer>
+          </filter>
+          <filter id="glow-core" x="-200%" y="-200%" width="500%" height="500%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="5"/>
+            <feComponentTransfer><feFuncA type="linear" slope="1.2"/></feComponentTransfer>
+          </filter>
+          <!-- Reusable node template (defined inline per instance for animation timing) -->
+        </defs>
+
+        <!-- =========================================================
+             BACKGROUND LAYERS: spokes, faint rings, tick crosshairs
+             ========================================================= -->
+
+        <!-- 12 radial spokes (very faint, all the way from r=30 to r=230) -->
+        <g stroke="#2a3146" stroke-width="0.35" opacity="0.45">
+          <line x1="0" y1="-230" x2="0" y2="-30"/>
+          <line x1="115" y1="-199.2" x2="15" y2="-25.98" transform="rotate(0)"/>
+          <g transform="rotate(30)">  <line x1="0" y1="-230" x2="0" y2="-30"/></g>
+          <g transform="rotate(60)">  <line x1="0" y1="-230" x2="0" y2="-30"/></g>
+          <g transform="rotate(90)">  <line x1="0" y1="-230" x2="0" y2="-30"/></g>
+          <g transform="rotate(120)"> <line x1="0" y1="-230" x2="0" y2="-30"/></g>
+          <g transform="rotate(150)"> <line x1="0" y1="-230" x2="0" y2="-30"/></g>
+          <g transform="rotate(180)"> <line x1="0" y1="-230" x2="0" y2="-30"/></g>
+          <g transform="rotate(210)"> <line x1="0" y1="-230" x2="0" y2="-30"/></g>
+          <g transform="rotate(240)"> <line x1="0" y1="-230" x2="0" y2="-30"/></g>
+          <g transform="rotate(270)"> <line x1="0" y1="-230" x2="0" y2="-30"/></g>
+          <g transform="rotate(300)"> <line x1="0" y1="-230" x2="0" y2="-30"/></g>
+          <g transform="rotate(330)"> <line x1="0" y1="-230" x2="0" y2="-30"/></g>
+        </g>
+
+        <!-- Faint concentric background rings (slightly dotted) -->
+        <g stroke="#2a3146" fill="none" opacity="0.45">
+          <circle r="60"  stroke-width="0.4" stroke-dasharray="1,3"/>
+          <circle r="80"  stroke-width="0.3" stroke-dasharray="1,4" opacity="0.6"/>
+          <circle r="135" stroke-width="0.3" stroke-dasharray="1,4" opacity="0.6"/>
+          <circle r="185" stroke-width="0.3" stroke-dasharray="1,4" opacity="0.6"/>
+          <circle r="230" stroke-width="0.5"/>
+        </g>
+
+        <!-- Outer crosshair frame (faint corner brackets at r=235) -->
+        <g stroke="#3a4258" stroke-width="0.6" fill="none" opacity="0.75">
+          <!-- 4 corner brackets at NE / NW / SE / SW -->
+          <g transform="rotate(0)"><path d="M 218 -20 L 218 -42 L 196 -42"/></g>
+          <g transform="rotate(90)"><path d="M 218 -20 L 218 -42 L 196 -42"/></g>
+          <g transform="rotate(180)"><path d="M 218 -20 L 218 -42 L 196 -42"/></g>
+          <g transform="rotate(270)"><path d="M 218 -20 L 218 -42 L 196 -42"/></g>
+        </g>
+
+        <!-- Radar sweep: narrow trailing wedge + bright leading line + cursor dot -->
+        <g class="radar">
+          <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 0 0" to="360 0 0" dur="24s" repeatCount="indefinite"/>
+          <!-- ~22 degree trailing trail behind the sweep -->
+          <path d="M 0 0 L 207 0 A 207 207 0 0 0 191.94 -77.42 Z" fill="url(#sweep-fade)" opacity="0.55"/>
+          <!-- Main sweep line (just inside outer ring at r=210) -->
+          <line x1="0" y1="0" x2="207" y2="0" stroke="#f5f4f0" stroke-width="0.55" opacity="0.7"/>
+          <!-- Sweep cursor dot at the leading tip -->
+          <circle cx="207" cy="0" r="2.6" fill="#f5f4f0" opacity="0.85"/>
+          <circle cx="207" cy="0" r="6" fill="#f5f4f0" opacity="0.18"/>
+        </g>
+
+        <!-- Radar ping rings: expanding from centre, fading -->
+        <circle class="ping-1" cx="0" cy="0" r="38" fill="none" stroke="#f5f4f0" stroke-width="1.4" opacity="0"/>
+        <circle class="ping-2" cx="0" cy="0" r="38" fill="none" stroke="#f5f4f0" stroke-width="1.4" opacity="0"/>
+        <circle class="ping-3" cx="0" cy="0" r="38" fill="none" stroke="#f5f4f0" stroke-width="1.4" opacity="0"/>
+
+        <!-- =========================================================
+             OUTER RING (P13-P15, longevity, aubergine)
+             ========================================================= -->
+
+        <g class="ring-outer">
+          <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 0 0" to="360 0 0" dur="360s" repeatCount="indefinite"/>
+          <!-- Ring track: solid + tick marks -->
+          <circle r="210" stroke="#5a3a7a" stroke-width="0.9" fill="none" opacity="0.7"/>
+          <!-- 36 tick marks on outer ring -->
+          <g stroke="#5a3a7a" stroke-width="0.7" opacity="0.55">
+            <g><line x1="0" y1="-203" x2="0" y2="-217"/></g>
+            <g transform="rotate(10)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(20)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(30)"><line x1="0" y1="-203" x2="0" y2="-217"/></g>
+            <g transform="rotate(40)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(50)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(60)"><line x1="0" y1="-203" x2="0" y2="-217"/></g>
+            <g transform="rotate(70)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(80)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(90)"><line x1="0" y1="-203" x2="0" y2="-217"/></g>
+            <g transform="rotate(100)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(110)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(120)"><line x1="0" y1="-203" x2="0" y2="-217"/></g>
+            <g transform="rotate(130)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(140)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(150)"><line x1="0" y1="-203" x2="0" y2="-217"/></g>
+            <g transform="rotate(160)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(170)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(180)"><line x1="0" y1="-203" x2="0" y2="-217"/></g>
+            <g transform="rotate(190)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(200)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(210)"><line x1="0" y1="-203" x2="0" y2="-217"/></g>
+            <g transform="rotate(220)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(230)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(240)"><line x1="0" y1="-203" x2="0" y2="-217"/></g>
+            <g transform="rotate(250)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(260)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(270)"><line x1="0" y1="-203" x2="0" y2="-217"/></g>
+            <g transform="rotate(280)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(290)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(300)"><line x1="0" y1="-203" x2="0" y2="-217"/></g>
+            <g transform="rotate(310)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(320)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(330)"><line x1="0" y1="-203" x2="0" y2="-217"/></g>
+            <g transform="rotate(340)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+            <g transform="rotate(350)"><line x1="0" y1="-205" x2="0" y2="-215"/></g>
+          </g>
+
+          <!-- Constellation: triangle arc connecting P13-P14-P15 (very faint, dashed) -->
+          <g stroke="#5a3a7a" stroke-width="0.5" fill="none" opacity="0.35" stroke-dasharray="3,4">
+            <path d="M 0 -210 A 210 210 0 0 1 181.86 105"/>
+            <path d="M 181.86 105 A 210 210 0 0 1 -181.86 105"/>
+            <path d="M -181.86 105 A 210 210 0 0 1 0 -210"/>
+          </g>
+
+          <!-- 3 nodes evenly spaced (with glow halos) -->
+          <g transform="rotate(-90)">
+            <g transform="translate(210,0)">
+              <circle r="22" fill="#5a3a7a" opacity="0.18" filter="url(#glow-purple)"/>
+              <circle r="14" fill="none" stroke="#5a3a7a" stroke-width="0.6" opacity="0.45"/>
+              <circle class="node-dot" r="7" fill="#5a3a7a"/>
+              <circle r="3.2" fill="#f5f4f0" opacity="0.85"/>
+              <text x="20" y="2" font-family="JetBrains Mono, monospace" font-size="9" font-weight="500" fill="#f5f4f0" letter-spacing="1">P13</text>
+              <text x="20" y="14" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#c8c5bd" letter-spacing="0.5">PERSISTENT MEMORY</text>
+            </g>
+            <g transform="rotate(120) translate(210,0)">
+              <circle r="22" fill="#5a3a7a" opacity="0.18" filter="url(#glow-purple)"/>
+              <circle r="14" fill="none" stroke="#5a3a7a" stroke-width="0.6" opacity="0.45"/>
+              <circle class="node-dot" r="7" fill="#5a3a7a"/>
+              <circle r="3.2" fill="#f5f4f0" opacity="0.85"/>
+              <g transform="rotate(-120)">
+                <text x="20" y="2" font-family="JetBrains Mono, monospace" font-size="9" font-weight="500" fill="#f5f4f0" letter-spacing="1">P14</text>
+                <text x="20" y="14" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#c8c5bd" letter-spacing="0.5">CONSOLIDATION</text>
+              </g>
+            </g>
+            <g transform="rotate(240) translate(210,0)">
+              <circle r="22" fill="#5a3a7a" opacity="0.18" filter="url(#glow-purple)"/>
+              <circle r="14" fill="none" stroke="#5a3a7a" stroke-width="0.6" opacity="0.45"/>
+              <circle class="node-dot" r="7" fill="#5a3a7a"/>
+              <circle r="3.2" fill="#f5f4f0" opacity="0.85"/>
+              <g transform="rotate(-240)">
+                <text x="-107" y="2" font-family="JetBrains Mono, monospace" font-size="9" font-weight="500" fill="#f5f4f0" letter-spacing="1">P15</text>
+                <text x="-107" y="14" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#c8c5bd" letter-spacing="0.5">ADAPTIVE PERSONA</text>
+              </g>
+            </g>
+          </g>
+        </g>
+
+        <!-- =========================================================
+             MIDDLE RING (P8-P12, deployment engineering, amber)
+             ========================================================= -->
+
+        <g class="ring-middle">
+          <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 0 0" to="-360 0 0" dur="270s" repeatCount="indefinite"/>
+          <circle r="160" stroke="#b8682e" stroke-width="0.9" fill="none" opacity="0.7"/>
+          <!-- 30 tick marks at every 12 degrees -->
+          <g stroke="#b8682e" stroke-width="0.65" opacity="0.55">
+            <g><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(12)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(24)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(36)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(48)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(60)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(72)"><line x1="0" y1="-153" x2="0" y2="-167"/></g>
+            <g transform="rotate(84)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(96)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(108)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(120)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(132)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(144)"><line x1="0" y1="-153" x2="0" y2="-167"/></g>
+            <g transform="rotate(156)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(168)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(180)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(192)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(204)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(216)"><line x1="0" y1="-153" x2="0" y2="-167"/></g>
+            <g transform="rotate(228)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(240)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(252)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(264)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(276)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(288)"><line x1="0" y1="-153" x2="0" y2="-167"/></g>
+            <g transform="rotate(300)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(312)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(324)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(336)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+            <g transform="rotate(348)"><line x1="0" y1="-155" x2="0" y2="-165"/></g>
+          </g>
+
+          <!-- Constellation: pentagon arc -->
+          <g stroke="#b8682e" stroke-width="0.4" fill="none" opacity="0.3" stroke-dasharray="2,4">
+            <circle r="160" fill="none"/>
+          </g>
+
+          <g transform="rotate(-90)">
+            <g transform="translate(160,0)">
+              <circle r="17" fill="#b8682e" opacity="0.2" filter="url(#glow-amber)"/>
+              <circle r="11" fill="none" stroke="#b8682e" stroke-width="0.5" opacity="0.45"/>
+              <circle class="node-dot" r="6" fill="#b8682e"/>
+              <circle r="2.6" fill="#f5f4f0" opacity="0.85"/>
+              <text x="16" y="2" font-family="JetBrains Mono, monospace" font-size="8.5" font-weight="500" fill="#f5f4f0" letter-spacing="1">P8</text>
+            </g>
+            <g transform="rotate(72) translate(160,0)">
+              <circle r="17" fill="#b8682e" opacity="0.2" filter="url(#glow-amber)"/>
+              <circle r="11" fill="none" stroke="#b8682e" stroke-width="0.5" opacity="0.45"/>
+              <circle class="node-dot" r="6" fill="#b8682e"/>
+              <circle r="2.6" fill="#f5f4f0" opacity="0.85"/>
+              <g transform="rotate(-72)">
+                <text x="16" y="2" font-family="JetBrains Mono, monospace" font-size="8.5" font-weight="500" fill="#f5f4f0" letter-spacing="1">P9</text>
+              </g>
+            </g>
+            <g transform="rotate(144) translate(160,0)">
+              <circle r="17" fill="#b8682e" opacity="0.2" filter="url(#glow-amber)"/>
+              <circle r="11" fill="none" stroke="#b8682e" stroke-width="0.5" opacity="0.45"/>
+              <circle class="node-dot" r="6" fill="#b8682e"/>
+              <circle r="2.6" fill="#f5f4f0" opacity="0.85"/>
+              <g transform="rotate(-144)">
+                <text x="16" y="2" font-family="JetBrains Mono, monospace" font-size="8.5" font-weight="500" fill="#f5f4f0" letter-spacing="1">P10</text>
+              </g>
+            </g>
+            <g transform="rotate(216) translate(160,0)">
+              <circle r="17" fill="#b8682e" opacity="0.2" filter="url(#glow-amber)"/>
+              <circle r="11" fill="none" stroke="#b8682e" stroke-width="0.5" opacity="0.45"/>
+              <circle class="node-dot" r="6" fill="#b8682e"/>
+              <circle r="2.6" fill="#f5f4f0" opacity="0.85"/>
+              <g transform="rotate(-216)">
+                <text x="-32" y="2" font-family="JetBrains Mono, monospace" font-size="8.5" font-weight="500" fill="#f5f4f0" letter-spacing="1">P11</text>
+              </g>
+            </g>
+            <g transform="rotate(288) translate(160,0)">
+              <circle r="17" fill="#b8682e" opacity="0.2" filter="url(#glow-amber)"/>
+              <circle r="11" fill="none" stroke="#b8682e" stroke-width="0.5" opacity="0.45"/>
+              <circle class="node-dot" r="6" fill="#b8682e"/>
+              <circle r="2.6" fill="#f5f4f0" opacity="0.85"/>
+              <g transform="rotate(-288)">
+                <text x="-32" y="2" font-family="JetBrains Mono, monospace" font-size="8.5" font-weight="500" fill="#f5f4f0" letter-spacing="1">P12</text>
+              </g>
+            </g>
+          </g>
+        </g>
+
+        <!-- =========================================================
+             INNER RING (P1-P7, foundation, cobalt)
+             ========================================================= -->
+
+        <g class="ring-inner">
+          <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 0 0" to="360 0 0" dur="180s" repeatCount="indefinite"/>
+          <circle r="110" stroke="#3854b8" stroke-width="0.9" fill="none" opacity="0.75"/>
+          <!-- 28 tick marks (every ~12.86 deg) -->
+          <g stroke="#3854b8" stroke-width="0.6" opacity="0.55">
+            <g><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+            <g transform="rotate(12.857)"><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+            <g transform="rotate(25.714)"><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+            <g transform="rotate(38.571)"><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+            <g transform="rotate(51.429)"><line x1="0" y1="-103" x2="0" y2="-117"/></g>
+            <g transform="rotate(64.286)"><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+            <g transform="rotate(77.143)"><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+            <g transform="rotate(90)"><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+            <g transform="rotate(102.857)"><line x1="0" y1="-103" x2="0" y2="-117"/></g>
+            <g transform="rotate(115.714)"><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+            <g transform="rotate(128.571)"><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+            <g transform="rotate(141.429)"><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+            <g transform="rotate(154.286)"><line x1="0" y1="-103" x2="0" y2="-117"/></g>
+            <g transform="rotate(167.143)"><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+            <g transform="rotate(180)"><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+            <g transform="rotate(192.857)"><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+            <g transform="rotate(205.714)"><line x1="0" y1="-103" x2="0" y2="-117"/></g>
+            <g transform="rotate(218.571)"><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+            <g transform="rotate(231.429)"><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+            <g transform="rotate(244.286)"><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+            <g transform="rotate(257.143)"><line x1="0" y1="-103" x2="0" y2="-117"/></g>
+            <g transform="rotate(270)"><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+            <g transform="rotate(282.857)"><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+            <g transform="rotate(295.714)"><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+            <g transform="rotate(308.571)"><line x1="0" y1="-103" x2="0" y2="-117"/></g>
+            <g transform="rotate(321.429)"><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+            <g transform="rotate(334.286)"><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+            <g transform="rotate(347.143)"><line x1="0" y1="-105" x2="0" y2="-115"/></g>
+          </g>
+
+          <g transform="rotate(-90)">
+            <g transform="translate(110,0)">
+              <circle r="13" fill="#3854b8" opacity="0.22" filter="url(#glow-cobalt)"/>
+              <circle r="8.5" fill="none" stroke="#3854b8" stroke-width="0.5" opacity="0.45"/>
+              <circle class="node-dot" r="5" fill="#3854b8"/>
+              <circle r="2.2" fill="#f5f4f0" opacity="0.85"/>
+              <text x="13" y="2" font-family="JetBrains Mono, monospace" font-size="7.5" font-weight="500" fill="#f5f4f0" letter-spacing="1">P1</text>
+            </g>
+            <g transform="rotate(51.4) translate(110,0)">
+              <circle r="13" fill="#3854b8" opacity="0.22" filter="url(#glow-cobalt)"/>
+              <circle r="8.5" fill="none" stroke="#3854b8" stroke-width="0.5" opacity="0.45"/>
+              <circle class="node-dot" r="5" fill="#3854b8"/>
+              <circle r="2.2" fill="#f5f4f0" opacity="0.85"/>
+              <g transform="rotate(-51.4)"><text x="13" y="2" font-family="JetBrains Mono, monospace" font-size="7.5" font-weight="500" fill="#f5f4f0" letter-spacing="1">P2</text></g>
+            </g>
+            <g transform="rotate(102.8) translate(110,0)">
+              <circle r="13" fill="#3854b8" opacity="0.22" filter="url(#glow-cobalt)"/>
+              <circle r="8.5" fill="none" stroke="#3854b8" stroke-width="0.5" opacity="0.45"/>
+              <circle class="node-dot" r="5" fill="#3854b8"/>
+              <circle r="2.2" fill="#f5f4f0" opacity="0.85"/>
+              <g transform="rotate(-102.8)"><text x="13" y="2" font-family="JetBrains Mono, monospace" font-size="7.5" font-weight="500" fill="#f5f4f0" letter-spacing="1">P3</text></g>
+            </g>
+            <g transform="rotate(154.2) translate(110,0)">
+              <circle r="13" fill="#3854b8" opacity="0.22" filter="url(#glow-cobalt)"/>
+              <circle r="8.5" fill="none" stroke="#3854b8" stroke-width="0.5" opacity="0.45"/>
+              <circle class="node-dot" r="5" fill="#3854b8"/>
+              <circle r="2.2" fill="#f5f4f0" opacity="0.85"/>
+              <g transform="rotate(-154.2)"><text x="-24" y="2" font-family="JetBrains Mono, monospace" font-size="7.5" font-weight="500" fill="#f5f4f0" letter-spacing="1">P4</text></g>
+            </g>
+            <g transform="rotate(205.6) translate(110,0)">
+              <circle r="13" fill="#3854b8" opacity="0.22" filter="url(#glow-cobalt)"/>
+              <circle r="8.5" fill="none" stroke="#3854b8" stroke-width="0.5" opacity="0.45"/>
+              <circle class="node-dot" r="5" fill="#3854b8"/>
+              <circle r="2.2" fill="#f5f4f0" opacity="0.85"/>
+              <g transform="rotate(-205.6)"><text x="-24" y="2" font-family="JetBrains Mono, monospace" font-size="7.5" font-weight="500" fill="#f5f4f0" letter-spacing="1">P5</text></g>
+            </g>
+            <g transform="rotate(257) translate(110,0)">
+              <circle r="13" fill="#3854b8" opacity="0.22" filter="url(#glow-cobalt)"/>
+              <circle r="8.5" fill="none" stroke="#3854b8" stroke-width="0.5" opacity="0.45"/>
+              <circle class="node-dot" r="5" fill="#3854b8"/>
+              <circle r="2.2" fill="#f5f4f0" opacity="0.85"/>
+              <g transform="rotate(-257)"><text x="-24" y="2" font-family="JetBrains Mono, monospace" font-size="7.5" font-weight="500" fill="#f5f4f0" letter-spacing="1">P6</text></g>
+            </g>
+            <g transform="rotate(308.4) translate(110,0)">
+              <circle r="13" fill="#3854b8" opacity="0.22" filter="url(#glow-cobalt)"/>
+              <circle r="8.5" fill="none" stroke="#3854b8" stroke-width="0.5" opacity="0.45"/>
+              <circle class="node-dot" r="5" fill="#3854b8"/>
+              <circle r="2.2" fill="#f5f4f0" opacity="0.85"/>
+              <g transform="rotate(-308.4)"><text x="13" y="2" font-family="JetBrains Mono, monospace" font-size="7.5" font-weight="500" fill="#f5f4f0" letter-spacing="1">P7</text></g>
+            </g>
+          </g>
+        </g>
+
+        <!-- =========================================================
+             CORE: identity hash glyph (stationary, lit)
+             ========================================================= -->
+
+        <!-- Outer aura -->
+        <circle class="core-aura" r="68" fill="url(#core-glow)" filter="url(#glow-core)"/>
+        <circle class="core-aura" r="58" fill="url(#core-glow)"/>
+
+        <!-- Twin frame -->
+        <circle r="42" fill="#0a0e1a" stroke="#f5f4f0" stroke-width="0.5" opacity="0.95"/>
+        <circle r="38" fill="none" stroke="#f5f4f0" stroke-width="0.3" opacity="0.4"/>
+
+        <!-- Corner brackets on the core frame (HUD style) -->
+        <g stroke="#f5f4f0" stroke-width="0.65" fill="none" opacity="0.7">
+          <path d="M -28 -42 L -42 -42 L -42 -28"/>
+          <path d="M  28 -42 L  42 -42 L  42 -28"/>
+          <path d="M -28  42 L -42  42 L -42  28"/>
+          <path d="M  28  42 L  42  42 L  42  28"/>
+        </g>
+
+        <!-- Core text: SHA-256 prefix and label -->
+        <text x="0" y="-22" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.5" fill="#8a8780" letter-spacing="2.2">IDENTITY · SHA-256</text>
+        <text class="hex-line" x="0" y="-9" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#f5f4f0" letter-spacing="1.6">7a3f9c2e8d1b4ca9</text>
+        <text x="0" y="0" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#c8c5bd" opacity="0.6" letter-spacing="1.6">·····················</text>
+        <text x="0" y="9" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#c8c5bd" opacity="0.8" letter-spacing="1.6">5e1f6b08af2c773d</text>
+        <!-- Status row -->
+        <text x="0" y="22" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.2" fill="#83C4C2" letter-spacing="2">▸ BYTE-EQUAL · INVARIANT</text>
+
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== THREE-THESIS OVERVIEW ==================== -->
+<section class="three-thesis" id="thesis">
+  <div class="col-wide">
+    <div class="thesis-card t1">
+      <div class="roman">I</div>
+      <h3>Embodied runtime governance.</h3>
+      <div class="scope">P1 — P7 &nbsp; · &nbsp; foundation</div>
+      <p>A single persistent agent runtime with installable, governable, and evolvable capabilities; six-dimensional ECM contracts; federated single-agent fleet coordination; and a seven-dimensional governance benchmark that <em>defines the discipline's measurement language</em>.</p>
+    </div>
+    <div class="thesis-card t2">
+      <div class="roman">II</div>
+      <h3>Deployment engineering for embodied AI.</h3>
+      <div class="scope">P8 — P12 &nbsp; · &nbsp; engineering</div>
+      <p>Compositional regression testing for skill updates; identity-stable canary deployment; federated trust directories replacing centralised PKI for capability marketplaces; audit-first rollback for deployment pipelines; and a <em>bounded-fidelity sim-as-demo-stage</em> methodology that prefers audit-chain stability over physics realism.</p>
+    </div>
+    <div class="thesis-card t3">
+      <div class="roman">III</div>
+      <h3>Identity-stable longevity.</h3>
+      <div class="scope">P13 — P15 &nbsp; · &nbsp; longevity</div>
+      <p>A four-layer persistent-agent growth stack: episodic persistence (Layer 1), semantic consolidation (Layer 2), cross-deployment migration (Layer 3), and operator-signed adaptive maturation (Layer 4). Each layer adds capability while preserving the identity hash <em>byte-equal across years of operation</em>.</p>
+    </div>
   </div>
 </section>
 
 <!-- ==================== ARCHITECTURE DIAGRAM ==================== -->
-<section class="diagram">
-  <div class="container">
-    <h2>System Architecture</h2>
-    <p class="lead">Seven papers, one coherent architecture &mdash; from the ECM runtime core to fleet-scale governance evaluation.</p>
-    <div class="diagram-card">
-      <svg viewBox="0 0 960 520" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
+<section class="architecture" id="architecture">
+  <div class="arch-grid">
+    <div>
+      <div class="ring-marker">Architecture</div>
+      <h2>One agent, four growth layers, one identity hash.</h2>
+      <p>
+        The persistent-agent growth stack sits above the immutable identity manifest. <em>Layer 0</em> is the seven-field hashed identity certificate (P1, P2). <em>Layer 1</em> is the partitioned episodic store (P13). <em>Layer 2</em> is the deterministic semantic consolidation pass (P14). <em>Layer 3</em> is the signed cross-deployment migration bundle (P13, again — it sits outside per-host scope). <em>Layer 4</em> is the operator-signed adaptive persona (P15).
+      </p>
+      <p>
+        Every layer above zero produces data that <em>does not enter</em> the identity hash. Identity is held byte-equal by construction, not maintained by runtime invariants. The shipped runtime exposes the layers as separable artefacts so they can be audited, signed, and replayed independently.
+      </p>
+    </div>
+    <div class="arch-svg-wrap">
+      <svg class="arch-svg" viewBox="0 0 420 390" xmlns="http://www.w3.org/2000/svg">
+        <!-- Vertical layer stack -->
+        <g>
+          <!-- Layer 4 -->
+          <rect x="20" y="20" width="380" height="46" fill="none" stroke="#5a3a7a" stroke-width="0.6" rx="2"/>
+          <text x="36" y="42" class="arch-layer-label">LAYER 4 &nbsp; ADAPTIVE PERSONA</text>
+          <text x="36" y="56" class="arch-layer-meta">P15 &nbsp;·&nbsp; OPERATOR-SIGNED &nbsp;·&nbsp; OUTSIDE HASH</text>
 
-        <!-- ===== P7 Benchmark (outermost dashed frame) ===== -->
-        <rect x="2" y="2" width="956" height="516" rx="16"
-              fill="#FFFAFA" stroke="#DC2626" stroke-width="2" stroke-dasharray="10 5"/>
-        <text x="480" y="22" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="600" fill="#DC2626" letter-spacing="0.3">
-          P7 &mdash; EmbodiedGovBench &middot; Governance Evaluation Framework
-        </text>
+          <!-- Layer 3 -->
+          <rect x="20" y="74" width="380" height="46" fill="none" stroke="#5a3a7a" stroke-width="0.6" rx="2"/>
+          <text x="36" y="96" class="arch-layer-label">LAYER 3 &nbsp; CROSS-DEPLOYMENT .AER</text>
+          <text x="36" y="110" class="arch-layer-meta">P13 &nbsp;·&nbsp; SIGNED TARBALL &nbsp;·&nbsp; OUTSIDE HASH</text>
 
-        <!-- ===== P6 Federation (solid frame) ===== -->
-        <rect x="18" y="36" width="924" height="462" rx="12"
-              fill="#F0FDFA" stroke="#0891B2" stroke-width="1.5"/>
-        <text x="480" y="54" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11.5" font-weight="600" fill="#0891B2">
-          P6 &mdash; Federated Single-Agent Fleet
-        </text>
+          <!-- Layer 2 -->
+          <rect x="20" y="128" width="380" height="46" fill="none" stroke="#5a3a7a" stroke-width="0.6" rx="2"/>
+          <text x="36" y="150" class="arch-layer-label">LAYER 2 &nbsp; SEMANTIC CONSOLIDATION</text>
+          <text x="36" y="164" class="arch-layer-meta">P14 &nbsp;·&nbsp; DETERMINISTIC FUNCTION &nbsp;·&nbsp; OUTSIDE HASH</text>
 
-        <!-- =============== ROBOT A =============== -->
-        <rect x="34" y="64" width="400" height="350" rx="10"
-              fill="white" stroke="#CBD5E1" stroke-width="1"/>
-        <text x="234" y="82" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10.5" font-weight="600" fill="#64748B">
-          Robot A &middot; Single-Agent Runtime
-        </text>
+          <!-- Layer 1 -->
+          <rect x="20" y="182" width="380" height="56" fill="none" stroke="#5a3a7a" stroke-width="0.6" rx="2"/>
+          <text x="36" y="204" class="arch-layer-label">LAYER 1 &nbsp; EPISODIC PERSISTENCE</text>
+          <text x="36" y="218" class="arch-layer-meta">P13 &nbsp;·&nbsp; SQLITE PARTITIONED BY IDENTITY</text>
+          <text x="36" y="230" class="arch-layer-meta">OUTSIDE HASH</text>
 
-        <!-- P3-A Governance -->
-        <rect x="46" y="92" width="376" height="250" rx="8"
-              fill="#FFFBEB" stroke="#D97706" stroke-width="1.5"/>
-        <text x="56" y="108" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#92400E">P3 Governance</text>
-        <text x="56" y="119" font-family="system-ui,sans-serif" font-size="8.5" fill="#B45309">Policy &middot; Watchers &middot; Recovery &middot; Human Override</text>
+          <!-- Spacer -->
+          <line x1="40" y1="254" x2="380" y2="254" stroke="#2a3146" stroke-width="0.4"/>
 
-        <!-- P2/P4-A Evolution -->
-        <rect x="56" y="124" width="356" height="206" rx="7"
-              fill="#ECFDF5" stroke="#059669" stroke-width="1.5"/>
-        <text x="66" y="140" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#065F46">P2 | P4 Governed Evolution</text>
-        <text x="66" y="151" font-family="system-ui,sans-serif" font-size="8.5" fill="#047857">Safe Upgrade &middot; Shadow Mode &middot; Rollback &middot; Validation</text>
+          <!-- Layer 0 -->
+          <rect x="20" y="262" width="380" height="112" fill="none" stroke="#f5f4f0" stroke-width="0.8" rx="2"/>
+          <text x="36" y="286" class="arch-layer-label" style="fill:#f5f4f0">LAYER 0 &nbsp; IDENTITY MANIFEST</text>
+          <text x="36" y="304" class="arch-layer-meta" style="fill:#c8c5bd">P1 + P2 &nbsp;·&nbsp; 7 FROZEN FIELDS</text>
+          <text x="36" y="319" class="arch-layer-meta" style="fill:#c8c5bd">SHA-256 = IDENTITY_HASH</text>
+          <text x="36" y="334" class="arch-layer-meta" style="fill:#c8c5bd">SYSTEM_PROMPT · ENV_POLICIES</text>
+          <text x="36" y="349" class="arch-layer-meta" style="fill:#c8c5bd">POLICY_RULES · ECM_REGISTRY</text>
+          <text x="36" y="364" class="arch-layer-meta" style="fill:#c8c5bd">PERSONA_HASH · RUNTIME_VERSION · SCHEMA_VERSION</text>
 
-        <!-- P5-A Contracts -->
-        <rect x="66" y="156" width="336" height="162" rx="6"
-              fill="#F5F3FF" stroke="#7C3AED" stroke-width="1.5"/>
-        <text x="76" y="172" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#5B21B6">P5 Contracts</text>
-        <text x="76" y="183" font-family="system-ui,sans-serif" font-size="8.5" fill="#6D28D9">Interface &middot; Compatibility &middot; Versioning &middot; Release Discipline</text>
+          <!-- Side label: "OUTSIDE HASH" bracket -->
+          <line x1="10" y1="22" x2="10" y2="237" stroke="#5a3a7a" stroke-width="1"/>
+          <text x="0" y="125" class="arch-layer-meta" style="fill:#5a3a7a" transform="rotate(-90 7 125)">PERSISTENT GROWTH</text>
 
-        <!-- P1-A AEROS Runtime -->
-        <rect x="76" y="190" width="316" height="118" rx="5"
-              fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5"/>
-        <text x="234" y="208" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#1E40AF">P1 AEROS Runtime</text>
-
-        <!-- ECM blocks in Robot A -->
-        <!-- ECM 1: Navigate -->
-        <rect x="90" y="216" width="86" height="80" rx="5"
-              fill="#DBEAFE" stroke="#2563EB" stroke-width="1"/>
-        <circle cx="133" cy="232" r="5" fill="#93C5FD" stroke="#2563EB" stroke-width="0.8"/>
-        <text x="133" y="250" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" font-weight="600" fill="#1E40AF">ECM</text>
-        <text x="133" y="264" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#3B82F6">Navigate</text>
-        <text x="133" y="288" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#94A3B8">v2.3</text>
-
-        <!-- ECM 2: Grasp -->
-        <rect x="191" y="216" width="86" height="80" rx="5"
-              fill="#DBEAFE" stroke="#2563EB" stroke-width="1"/>
-        <circle cx="234" cy="232" r="5" fill="#93C5FD" stroke="#2563EB" stroke-width="0.8"/>
-        <text x="234" y="250" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" font-weight="600" fill="#1E40AF">ECM</text>
-        <text x="234" y="264" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#3B82F6">Grasp</text>
-        <text x="234" y="288" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#94A3B8">v1.7</text>
-
-        <!-- ECM 3: Inspect -->
-        <rect x="292" y="216" width="86" height="80" rx="5"
-              fill="#DBEAFE" stroke="#2563EB" stroke-width="1"/>
-        <circle cx="335" cy="232" r="5" fill="#93C5FD" stroke="#2563EB" stroke-width="0.8"/>
-        <text x="335" y="250" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" font-weight="600" fill="#1E40AF">ECM</text>
-        <text x="335" y="264" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#3B82F6">Inspect</text>
-        <text x="335" y="288" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#94A3B8">v3.0</text>
-
-        <!-- Audit bar Robot A -->
-        <rect x="46" y="352" width="376" height="48" rx="6"
-              fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="4 3"/>
-        <text x="234" y="372" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" font-weight="500" fill="#64748B">
-          Audit Trail &middot; Execution Trace &middot; Recovery Log
-        </text>
-        <text x="234" y="388" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#94A3B8">
-          Human Supervisor H&#x2090;
-        </text>
-
-        <!-- =============== ROBOT B =============== -->
-        <rect x="526" y="64" width="400" height="350" rx="10"
-              fill="white" stroke="#CBD5E1" stroke-width="1"/>
-        <text x="726" y="82" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10.5" font-weight="600" fill="#64748B">
-          Robot B &middot; Single-Agent Runtime
-        </text>
-
-        <!-- P3-B Governance -->
-        <rect x="538" y="92" width="376" height="250" rx="8"
-              fill="#FFFBEB" stroke="#D97706" stroke-width="1.5"/>
-        <text x="548" y="108" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#92400E">P3 Governance</text>
-        <text x="548" y="119" font-family="system-ui,sans-serif" font-size="8.5" fill="#B45309">Policy &middot; Watchers &middot; Recovery &middot; Human Override</text>
-
-        <!-- P2/P4-B Evolution -->
-        <rect x="548" y="124" width="356" height="206" rx="7"
-              fill="#ECFDF5" stroke="#059669" stroke-width="1.5"/>
-        <text x="558" y="140" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#065F46">P2 | P4 Governed Evolution</text>
-        <text x="558" y="151" font-family="system-ui,sans-serif" font-size="8.5" fill="#047857">Safe Upgrade &middot; Shadow Mode &middot; Rollback &middot; Validation</text>
-
-        <!-- P5-B Contracts -->
-        <rect x="558" y="156" width="336" height="162" rx="6"
-              fill="#F5F3FF" stroke="#7C3AED" stroke-width="1.5"/>
-        <text x="568" y="172" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#5B21B6">P5 Contracts</text>
-        <text x="568" y="183" font-family="system-ui,sans-serif" font-size="8.5" fill="#6D28D9">Interface &middot; Compatibility &middot; Versioning &middot; Release Discipline</text>
-
-        <!-- P1-B AEROS Runtime -->
-        <rect x="568" y="190" width="316" height="118" rx="5"
-              fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5"/>
-        <text x="726" y="208" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#1E40AF">P1 AEROS Runtime</text>
-
-        <!-- ECM blocks in Robot B (2 ECMs) -->
-        <!-- ECM B1: Navigate (shared with A) -->
-        <rect x="625" y="216" width="86" height="80" rx="5"
-              fill="#DBEAFE" stroke="#2563EB" stroke-width="1"/>
-        <circle cx="668" cy="232" r="5" fill="#93C5FD" stroke="#2563EB" stroke-width="0.8"/>
-        <text x="668" y="250" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" font-weight="600" fill="#1E40AF">ECM</text>
-        <text x="668" y="264" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#3B82F6">Navigate</text>
-        <text x="668" y="288" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#94A3B8">v2.3</text>
-
-        <!-- ECM B2: Deliver -->
-        <rect x="741" y="216" width="86" height="80" rx="5"
-              fill="#DBEAFE" stroke="#2563EB" stroke-width="1"/>
-        <circle cx="784" cy="232" r="5" fill="#93C5FD" stroke="#2563EB" stroke-width="0.8"/>
-        <text x="784" y="250" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" font-weight="600" fill="#1E40AF">ECM</text>
-        <text x="784" y="264" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#3B82F6">Deliver</text>
-        <text x="784" y="288" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7.5" fill="#94A3B8">v1.2</text>
-
-        <!-- Audit bar Robot B -->
-        <rect x="538" y="352" width="376" height="48" rx="6"
-              fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="4 3"/>
-        <text x="726" y="372" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" font-weight="500" fill="#64748B">
-          Audit Trail &middot; Execution Trace &middot; Recovery Log
-        </text>
-        <text x="726" y="388" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#94A3B8">
-          Human Supervisor H&#x2091;
-        </text>
-
-        <!-- ===== CONNECTIONS BETWEEN ROBOTS ===== -->
-        <!-- Connection 1: Shared Registry -->
-        <line x1="434" y1="230" x2="526" y2="230" stroke="#0891B2" stroke-width="1.2" stroke-dasharray="4 3"/>
-        <rect x="441" y="219" width="78" height="22" rx="11" fill="white" stroke="#0891B2" stroke-width="1"/>
-        <text x="480" y="234" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" font-weight="600" fill="#0891B2">Shared Registry</text>
-
-        <!-- Connection 2: Task Delegation -->
-        <line x1="434" y1="280" x2="526" y2="280" stroke="#0891B2" stroke-width="1.2" stroke-dasharray="4 3"/>
-        <rect x="441" y="269" width="78" height="22" rx="11" fill="white" stroke="#0891B2" stroke-width="1"/>
-        <text x="480" y="284" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" font-weight="600" fill="#0891B2">Task Delegation</text>
-
-        <!-- Connection 3: Fleet Recovery -->
-        <line x1="434" y1="330" x2="526" y2="330" stroke="#0891B2" stroke-width="1.2" stroke-dasharray="4 3"/>
-        <rect x="441" y="319" width="78" height="22" rx="11" fill="white" stroke="#0891B2" stroke-width="1"/>
-        <text x="480" y="334" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" font-weight="600" fill="#0891B2">Fleet Recovery</text>
-
-        <!-- ===== FLEET-LEVEL INFO ===== -->
-        <text x="480" y="440" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" font-weight="500" fill="#0891B2">
-          Fleet-Level: Shared ECM Discovery &middot; Trust-Scoped Delegation &middot; Policy Composition &middot; Layered Recovery
-        </text>
-        <text x="480" y="456" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#0891B2" fill-opacity="0.7">
-          Fleet Human Supervisor H&#x1D07;
-        </text>
-
-        <!-- ===== P7 EVALUATION PROBES ===== -->
-        <text x="480" y="510" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#DC2626" fill-opacity="0.6">
-          Evaluates: Authorization &middot; Drift &middot; Recovery &middot; Portability &middot; Upgrade Safety &middot; Human Override &middot; Audit Completeness
-        </text>
-
+          <line x1="10" y1="264" x2="10" y2="373" stroke="#f5f4f0" stroke-width="1"/>
+          <text x="0" y="322" class="arch-layer-meta" style="fill:#f5f4f0" transform="rotate(-90 7 322)">IDENTITY</text>
+        </g>
       </svg>
     </div>
-    <div class="diagram-legend">
-      <div class="legend-item"><div class="legend-dot" style="background:#2563EB"></div>P1 Runtime</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#7C3AED"></div>P5 Contracts</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#059669"></div>P2|P4 Evolution</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#D97706"></div>P3 Governance</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#0891B2"></div>P6 Federation</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#DC2626"></div>P7 Benchmark</div>
-    </div>
   </div>
 </section>
 
-<!-- ==================== NARRATIVE ==================== -->
-<section class="narrative">
-  <div class="container">
-    <h2>Research Narrative</h2>
-    <p class="lead">
-      Seven papers form a complete research program: from defining what an embodied agent runtime <em>is</em>, to how it <em>evolves</em>, how it is <em>governed</em>, how capabilities are <em>contracted</em>, how robots <em>federate</em>, and finally how the field should <em>measure</em> all of this.
+<!-- ==================== INNER RING: P1-P7 ==================== -->
+<section class="ring-section inner-ring" id="foundation">
+  <div class="col">
+    <div class="ring-marker">Thesis I &nbsp;·&nbsp; Inner ring &nbsp;·&nbsp; Foundation</div>
+    <h2>The single-agent <em>runtime</em>.</h2>
+    <p class="standfirst">
+      A robot is not a fleet of agents in disguise. It is one persistent agent with an installable capability layer, a separable governance runtime, a contract-based ecosystem for capability composition, and a federation layer for fleet coordination. The seventh paper defines the measurement language for the first six.
     </p>
-    <div class="timeline">
-
-      <div class="tl-item">
-        <div class="tl-dot">1</div>
-        <div class="tl-label">Architecture</div>
-        <div class="tl-title">AEROS &mdash; What is an embodied agent runtime?</div>
-        <div class="tl-desc">Defines the single-agent runtime and Embodied Capability Module (ECM) abstraction. Capabilities are installable, removable, and governable at runtime.</div>
-      </div>
-
-      <div class="tl-item">
-        <div class="tl-dot">2</div>
-        <div class="tl-label">Evolution</div>
-        <div class="tl-title">How do capabilities grow without breaking the agent?</div>
-        <div class="tl-desc">Capability evolution through ECM versioning, replacement, and regression-aware upgrading &mdash; without altering the agent's identity or existing behaviors.</div>
-      </div>
-
-      <div class="tl-item">
-        <div class="tl-dot">3</div>
-        <div class="tl-label">Governance</div>
-        <div class="tl-title">How does the runtime stay controllable during execution?</div>
-        <div class="tl-desc">Runtime governance layer: admission control, policy enforcement, behavioral watchers, structured recovery, and human override protocols.</div>
-      </div>
-
-      <div class="tl-item">
-        <div class="tl-dot">4</div>
-        <div class="tl-label">Governed Evolution</div>
-        <div class="tl-title">When capabilities evolve, how does governance stay valid?</div>
-        <div class="tl-desc">Bridges evolution and governance: gated deployment, shadow mode testing, rollback conditions, and policy compatibility checking across capability versions.</div>
-      </div>
-
-      <div class="tl-item">
-        <div class="tl-dot">5</div>
-        <div class="tl-label">Contracts</div>
-        <div class="tl-title">How do capability packages compose reliably?</div>
-        <div class="tl-desc">Six-dimensional contract model for ECMs: functional signature, behavioral assumptions, resource requirements, permission boundaries, recovery semantics, and version compatibility.</div>
-      </div>
-
-      <div class="tl-item">
-        <div class="tl-dot">6</div>
-        <div class="tl-label">Federation</div>
-        <div class="tl-title">How do multiple robots coordinate without fragmenting each agent?</div>
-        <div class="tl-desc">Fleet coordination through federation across coherent single-agent runtimes: shared capability registries, trust-scoped delegation, layered recovery, and hierarchical human oversight.</div>
-      </div>
-
-      <div class="tl-item">
-        <div class="tl-dot">7</div>
-        <div class="tl-label">Benchmark</div>
-        <div class="tl-title">How should the field measure all of this?</div>
-        <div class="tl-desc">EmbodiedGovBench: seven governance dimensions, six protocol families, single-robot and fleet evaluation tracks. The measurement layer that completes the research program.</div>
-      </div>
-
-    </div>
   </div>
-</section>
+  <div class="papers">
 
-<!-- ==================== PAPERS ==================== -->
-<section class="papers" id="papers">
-  <div class="container">
-    <h2>Paper Series</h2>
-    <p class="lead">All papers share unified terminology, author information, and cross-references.</p>
-
-    <!-- P1 -->
-    <div class="paper-card">
-      <div class="paper-num">P1</div>
-      <div class="paper-body">
-        <h3>AEROS: A Runtime Architecture for Embodied Agents with Installable Capability Modules</h3>
-        <div class="venue">Under review &middot; 2026</div>
-        <div class="desc">Defines the single-agent runtime and Embodied Capability Module (ECM) abstraction: what an embodied agent runtime <em>is</em>.</div>
-        <div class="paper-links">
+    <div class="paper-entry">
+      <div class="pid">P1</div>
+      <div>
+        <h4>AEROS: A Runtime Architecture for Embodied Agents with Installable Capability Modules.</h4>
+        <div class="venue">arXiv 2604.07039 &nbsp;·&nbsp; <span class="rank">under review</span></div>
+        <p class="one-line">Defines the single-agent runtime and the Embodied Capability Module (ECM) abstraction. Capabilities are installable, removable, governable at runtime.</p>
+        <div class="links">
           <a href="https://arxiv.org/abs/2604.07039">arXiv</a>
-          <a href="https://github.com/s20sc/aeros">Code (paper)</a>
+          <a href="https://github.com/s20sc/aeros">code</a>
         </div>
       </div>
     </div>
 
-    <!-- P2 -->
-    <div class="paper-card">
-      <div class="paper-num">P2</div>
-      <div class="paper-body">
-        <h3>Learning Without Losing Identity: Capability Evolution for Embodied Agents</h3>
-        <div class="venue">Under review &middot; 2026</div>
-        <div class="desc">How capabilities evolve&mdash;grow, iterate, replace&mdash;without altering the agent's identity or breaking existing behaviors.</div>
-        <div class="paper-links">
+    <div class="paper-entry">
+      <div class="pid">P2</div>
+      <div>
+        <h4>Learning Without Losing Identity: Capability Evolution for Embodied Agents.</h4>
+        <div class="venue">arXiv 2604.07799 &nbsp;·&nbsp; <span class="rank">under review</span></div>
+        <p class="one-line">Capabilities grow without changing the agent itself; the evolution target is the ECM, not the agent identity.</p>
+        <div class="links">
           <a href="https://arxiv.org/abs/2604.07799">arXiv</a>
-          <a href="https://github.com/s20sc/capability-evolution">Code (paper)</a>
+          <a href="https://github.com/s20sc/capability-evolution">code</a>
         </div>
       </div>
     </div>
 
-    <!-- P3 -->
-    <div class="paper-card">
-      <div class="paper-num">P3</div>
-      <div class="paper-body">
-        <h3>Harnessing Embodied Agents: Runtime Governance for Policy-Constrained Execution</h3>
-        <div class="venue">Under review &middot; 2026</div>
-        <div class="desc">Runtime governance layer: admission control, policy enforcement, watcher, recovery, and human override.</div>
-        <div class="paper-links">
+    <div class="paper-entry">
+      <div class="pid">P3</div>
+      <div>
+        <h4>Harnessing Embodied Agents: Runtime Governance for Policy-Constrained Execution.</h4>
+        <div class="venue">arXiv 2604.07833 &nbsp;·&nbsp; <span class="rank">under review</span></div>
+        <p class="one-line">A runtime governance layer external to the agent: admission, policy, monitoring, recovery, human override — five disciplines, one runtime.</p>
+        <div class="links">
           <a href="https://arxiv.org/abs/2604.07833">arXiv</a>
-          <a href="https://github.com/s20sc/harnessing-embodied-agents">Code (paper)</a>
+          <a href="https://github.com/s20sc/harnessing-embodied-agents">code</a>
         </div>
       </div>
     </div>
 
-    <!-- P4 -->
-    <div class="paper-card">
-      <div class="paper-num">P4</div>
-      <div class="paper-body">
-        <h3>Governed Capability Evolution for Embodied Agents</h3>
-        <div class="venue">Under review &middot; 2026</div>
-        <div class="desc">When capabilities evolve, how does governance remain continuously valid? Gated deployment, shadow mode, rollback, and policy compatibility.</div>
-        <div class="paper-links">
+    <div class="paper-entry">
+      <div class="pid">P4</div>
+      <div>
+        <h4>Governed Capability Evolution for Embodied Agents.</h4>
+        <div class="venue">arXiv 2604.08059 &nbsp;·&nbsp; <span class="rank">under review</span></div>
+        <p class="one-line">Capability evolution × runtime governance: candidate validation, sandbox, shadow mode, gated activation, online monitoring, rollback. Six-stage pipeline.</p>
+        <div class="links">
           <a href="https://arxiv.org/abs/2604.08059">arXiv</a>
-          <a href="https://github.com/s20sc/governed-capability-evolution">Code (paper)</a>
+          <a href="https://github.com/s20sc/governed-capability-evolution">code</a>
         </div>
       </div>
     </div>
 
-    <!-- P5 -->
-    <div class="paper-card">
-      <div class="paper-num">P5</div>
-      <div class="paper-body">
-        <h3>ECM Contracts: Contract-Aware, Versioned, and Governable Capability Interfaces for Embodied Agents</h3>
-        <div class="venue">Under review &middot; 2026</div>
-        <div class="desc">Six-dimensional contract model for ECMs: functional signature, behavioral assumptions, resource requirements, permission boundaries, recovery semantics, and version compatibility.</div>
-        <div class="paper-links">
+    <div class="paper-entry">
+      <div class="pid">P5</div>
+      <div>
+        <h4>ECM Contracts: Contract-Aware, Versioned, and Governable Capability Interfaces.</h4>
+        <div class="venue">arXiv 2604.13097 &nbsp;·&nbsp; <span class="rank">under review</span></div>
+        <p class="one-line">A six-dimensional contract: functional signature, behavioural assumptions, resource requirements, permission boundaries, recovery semantics, version compatibility.</p>
+        <div class="links">
           <a href="https://arxiv.org/abs/2604.13097">arXiv</a>
-          <a href="https://github.com/s20sc/ecm-contracts">Code (paper)</a>
+          <a href="https://github.com/s20sc/ecm-contracts">code</a>
         </div>
       </div>
     </div>
 
-    <!-- P6 -->
-    <div class="paper-card">
-      <div class="paper-num">P6</div>
-      <div class="paper-body">
-        <h3>Federated Single-Agent Robotics: Multi-Robot Coordination Without Intra-Robot Multi-Agent Fragmentation</h3>
-        <div class="venue">Under review &middot; 2026</div>
-        <div class="desc">Multi-robot coordination through federation across coherent single-agent runtimes, rather than fragmenting each robot into multiple agents.</div>
-        <div class="paper-links">
+    <div class="paper-entry">
+      <div class="pid">P6</div>
+      <div>
+        <h4>Federated Single-Agent Robotics: Multi-Robot Coordination Without Fragmentation.</h4>
+        <div class="venue">arXiv 2604.11028 &nbsp;·&nbsp; <span class="rank">under review</span></div>
+        <p class="one-line">Coordination across coherent single-agent runtimes — <em>federation</em>, not <em>fragmentation</em> within each robot.</p>
+        <div class="links">
           <a href="https://arxiv.org/abs/2604.11028">arXiv</a>
-          <a href="https://github.com/s20sc/fsar-fleet-coordination">Code (paper)</a>
+          <a href="https://github.com/s20sc/fsar-fleet-coordination">code</a>
         </div>
       </div>
     </div>
 
-    <!-- P7 -->
-    <div class="paper-card">
-      <div class="paper-num">P7</div>
-      <div class="paper-body">
-        <h3>EmbodiedGovBench: A Benchmark for Governance, Recovery, and Upgrade Safety in Embodied Agent Systems</h3>
-        <div class="venue">Under review &middot; 2026</div>
-        <div class="desc">Seven governance dimensions, six protocol families, single-robot and fleet tracks. The measurement layer of the research program.</div>
-        <div class="paper-links">
+    <div class="paper-entry">
+      <div class="pid">P7</div>
+      <div>
+        <h4>EmbodiedGovBench: A Benchmark for Governance, Recovery, and Upgrade Safety.</h4>
+        <div class="venue">arXiv 2604.11174 &nbsp;·&nbsp; <span class="rank">under review</span></div>
+        <p class="one-line">Seven governance dimensions, six protocol families, single-robot and fleet tracks. The measurement layer.</p>
+        <div class="links">
           <a href="https://arxiv.org/abs/2604.11174">arXiv</a>
-          <a href="https://github.com/s20sc/embodied-gov-bench">Code (paper)</a>
+          <a href="https://github.com/s20sc/embodied-gov-bench">code</a>
         </div>
       </div>
     </div>
@@ -742,20 +1477,196 @@
   </div>
 </section>
 
-<!-- ==================== BIBTEX ==================== -->
-<section class="bibtex" id="bibtex">
-  <div class="container">
-    <h2>Citation</h2>
-    <p class="lead">BibTeX entries for all papers in the series.</p>
+<!-- ==================== MIDDLE RING: P8-P12 ==================== -->
+<section class="ring-section middle-ring" id="deployment">
+  <div class="col">
+    <div class="ring-marker">Thesis II &nbsp;·&nbsp; Middle ring &nbsp;·&nbsp; Deployment engineering</div>
+    <h2>Bringing the runtime <em>into the field</em>.</h2>
+    <p class="standfirst">
+      Compositional regression testing for skill updates. Identity-stable canary deployment. Federated trust directories that replace centralised PKI for embodied capability marketplaces. Audit-first rollback semantics for safety-critical deployment pipelines. A bounded-fidelity sim methodology for governance demos that refuses to chase physics realism.
+    </p>
+  </div>
+  <div class="papers">
 
-<div class="bib-block" id="bib-all"><button class="copy-btn" onclick="copyBib()">Copy All</button>@article{qin2026aeros,
+    <div class="paper-entry">
+      <div class="pid">P8</div>
+      <div>
+        <h4>Atomic-Probe Governance for Compositional Skill Updates.</h4>
+        <div class="venue">Under review</div>
+        <p class="one-line">Six-trajectory atomic probes test compositional behaviour, not in-isolation behaviour. Catches regressions that unit-test suites cannot.</p>
+        <div class="links">
+          <a href="#">preprint</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="paper-entry">
+      <div class="pid">P9</div>
+      <div>
+        <h4>Identity-Stable Canary Deployment for Safety-Critical Embodied Agents.</h4>
+        <div class="venue">Under review</div>
+        <p class="one-line">Canary fraction can run a new capability version while the agent's identity certificate remains byte-equal across the canary window.</p>
+        <div class="links">
+          <a href="#">preprint</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="paper-entry">
+      <div class="pid">P10</div>
+      <div>
+        <h4>Federated Trust for Embodied Robot Capability Marketplaces.</h4>
+        <div class="venue">Under review</div>
+        <p class="one-line">Per-deployment trust directories replace centralised PKI. Ed25519 detached signatures, bridge-local install gate, immutable but unverifying registry. Offline by default.</p>
+        <div class="links">
+          <a href="#">preprint</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="paper-entry">
+      <div class="pid">P11</div>
+      <div>
+        <h4>Audit-First Rollback Semantics for Safety-Critical Deployment Pipelines.</h4>
+        <div class="venue">Under review</div>
+        <p class="one-line">On pipeline failure, live state is reverted to match the audit chain's last consistent point before any terminal record is written. Provisional state machines name where the rule applies.</p>
+        <div class="links">
+          <a href="#">preprint</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="paper-entry">
+      <div class="pid">P12</div>
+      <div>
+        <h4>Bounded-Fidelity Sim-as-Demo-Stage: Mocap Handoff for Governance Benchmarks.</h4>
+        <div class="venue">Under review</div>
+        <p class="one-line">MuJoCo mocap-body handoff during the carry phase. Contact physics is suppressed where it would only pollute the audit chain. Audit-chain stability replaces physics fidelity as the headline metric.</p>
+        <div class="links">
+          <a href="#">preprint</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ==================== OUTER RING: P13-P15 ==================== -->
+<section class="ring-section outer-ring" id="longevity">
+  <div class="col">
+    <div class="ring-marker">Thesis III &nbsp;·&nbsp; Outer ring &nbsp;·&nbsp; Identity-stable longevity</div>
+    <h2>Lived experience under a <em>byte-equal certificate</em>.</h2>
+    <p class="standfirst">
+      An agent that runs for years, accumulates episodic memory, consolidates that memory into structured knowledge, migrates across deployment hosts, and matures through operator-signed adaptive events — all while its identity hash remains byte-equal. The persistent-agent growth stack: four layers around an invariant centre.
+    </p>
+  </div>
+  <div class="papers">
+
+    <div class="paper-entry">
+      <div class="pid">P13</div>
+      <div>
+        <h4>Persistent Episodic Memory under Identity Invariance.</h4>
+        <div class="venue">Under review</div>
+        <p class="one-line">SQLite-backed episodic store partitioned by identity hash. Signed <code>.aer</code> tarball cross-deployment migration with recompute-and-refuse-on-mismatch. Memory growth is non-mutating to agent identity by construction.</p>
+        <div class="links">
+          <a href="#">preprint</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="paper-entry">
+      <div class="pid">P14</div>
+      <div>
+        <h4>Episodic-to-Semantic Consolidation Without Identity Drift.</h4>
+        <div class="venue">Under review</div>
+        <p class="one-line">Consolidation as a deterministic function over episodic memory bytes. Extracted facts are addressable separately and do not enter the identity hash. The agent learns while remaining the same agent.</p>
+        <div class="links">
+          <a href="#">preprint</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="paper-entry">
+      <div class="pid">P15</div>
+      <div>
+        <h4>Governed Maturation Under Frozen Identity: Operator-Signed Adaptive Persona.</h4>
+        <div class="venue">Under review</div>
+        <p class="one-line">PersonaCore (frozen, hashed) plus PersonaAdaptive (lived-in calibration, outside the hash). Six discrete adaptation events, an asymmetric trust matrix, and operator Ed25519 signatures form a cryptographic provenance chain. Identity byte-equality preserved across simulated three-year deployments.</p>
+        <div class="links">
+          <a href="#">preprint</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ==================== CONCEPT DICTIONARY ==================== -->
+<section class="dictionary">
+  <div class="col">
+    <div class="ring-marker">Concept dictionary</div>
+    <h2>Terms the programme shares.</h2>
+    <p class="standfirst">Fifteen papers, one terminology surface. Each term is defined once and consistently used across the programme.</p>
+    <dl>
+      <div>
+        <dt>persistent_agent</dt>
+        <dd>The cognitive subject corresponding to one robot. Identity is the SHA-256 of a seven-field manifest; this hash holds byte-equal across the agent's operational lifetime.</dd>
+      </div>
+      <div>
+        <dt>identity_hash</dt>
+        <dd>The byte-level identifier of the agent. Computed from seven manifest fields. Held byte-equal across module updates, persistence, migration, consolidation, and operator-signed maturation.</dd>
+      </div>
+      <div>
+        <dt>ECM</dt>
+        <dd>Embodied Capability Module. An installable, removable, hot-replaceable unit of capability with a six-dimensional contract.</dd>
+      </div>
+      <div>
+        <dt>runtime_governance</dt>
+        <dd>The external runtime layer enforcing admission, policy, monitoring, recovery, and human override. Separate from the agent that proposes actions.</dd>
+      </div>
+      <div>
+        <dt>audit_chain</dt>
+        <dd>Append-only, structured event log partitioned by identity_hash. A first-class persistent artefact, not a side-effect of logging.</dd>
+      </div>
+      <div>
+        <dt>federated_trust</dt>
+        <dd>Per-deployment trust directory of acceptable Ed25519 signers. Replaces centralised PKI for embodied capability marketplaces.</dd>
+      </div>
+      <div>
+        <dt>audit_first</dt>
+        <dd>On pipeline failure, the audit chain is the source of truth; live state is reverted to match its last consistent point before any terminal record is written.</dd>
+      </div>
+      <div>
+        <dt>.aer tarball</dt>
+        <dd>Signed cross-deployment migration bundle. Target host recomputes identity_hash and refuses import on mismatch.</dd>
+      </div>
+      <div>
+        <dt>PersonaCore / PersonaAdaptive</dt>
+        <dd>Operator commitments at deployment time (frozen, in identity_hash) vs. lived-in calibration (outside identity_hash). The split that lets the agent mature without re-certifying.</dd>
+      </div>
+      <div>
+        <dt>governance_dimension</dt>
+        <dd>One of seven measurable dimensions in EmbodiedGovBench: authorisation, drift robustness, recovery, portability, upgrade safety, human override, audit completeness.</dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+<!-- ==================== CITATION ==================== -->
+<section class="citation" id="citation">
+  <div class="col">
+    <div class="ring-marker">Cite</div>
+    <h2>How to cite the programme.</h2>
+    <p class="standfirst">Fifteen entries below. Use the relevant individual paper when citing a specific contribution; cite the programme as a whole when referencing the overall thesis.</p>
+    <pre>@article{qin2026aeros,
   title={AEROS: A Runtime Architecture for Embodied Agents with Installable Capability Modules},
   author={Qin, Xue and Luan, Simin and See, John and Yang, Cong and Li, Zhijun},
   journal={arXiv preprint arXiv:2604.07039},
   year={2026}
-}
-
-@article{qin2026evolution,
+}</pre>
+    <button class="toggle" onclick="document.getElementById('more-bib').classList.toggle('open'); this.textContent = this.textContent.includes('Show') ? 'Hide remaining 14 entries' : 'Show remaining 14 entries';">Show remaining 14 entries</button>
+    <div id="more-bib" class="more">
+<pre>@article{qin2026evolution,
   title={Learning Without Losing Identity: Capability Evolution for Embodied Agents},
   author={Qin, Xue and Luan, Simin and See, John and Yang, Cong and Li, Zhijun},
   journal={arXiv preprint arXiv:2604.07799},
@@ -778,7 +1689,7 @@
 
 @article{qin2026contracts,
   title={ECM Contracts: Contract-Aware, Versioned, and Governable Capability Interfaces for Embodied Agents},
-  author={Qin, Xue and Luan, Simin and See, John and Yang, Cong and Li, Zhijun},
+  author={Qin, Xue and Luan, Simin and See, John and Yang, Cong and Li, Zhijun and Boukhers, Zeyd},
   journal={arXiv preprint arXiv:2604.13097},
   year={2026}
 }
@@ -792,45 +1703,102 @@
 
 @article{qin2026embodiedgovbench,
   title={EmbodiedGovBench: A Benchmark for Governance, Recovery, and Upgrade Safety in Embodied Agent Systems},
-  author={Qin, Xue and Luan, Simin and See, John and Yang, Cong and Li, Zhijun},
+  author={Qin, Xue and Luan, Simin and See, John and Yang, Cong and Li, Zhijun and Boukhers, Zeyd},
   journal={arXiv preprint arXiv:2604.11174},
   year={2026}
-}</div>
+}
 
+@unpublished{qin2026atomicprobe,
+  title={Atomic-Probe Governance for Compositional Skill Updates in Embodied Agents},
+  author={Qin, Xue and Luan, Simin and See, John and Yang, Cong and Li, Zhijun and Boukhers, Zeyd},
+  year={2026},
+  note={Under review}
+}
+
+@unpublished{qin2026canary,
+  title={Identity-Stable Canary Deployment for Safety-Critical Embodied Agents},
+  author={Qin, Xue and Luan, Simin and See, John and Boukhers, Zeyd and Yang, Cong and Li, Zhijun},
+  year={2026},
+  note={Under review}
+}
+
+@unpublished{qin2026federatedtrust,
+  title={Federated Trust for Embodied Robot Capability Marketplaces},
+  author={Qin, Xue and Luan, Simin and See, John and Boukhers, Zeyd and Yang, Cong and Li, Zhijun},
+  year={2026},
+  note={In preparation, CCS / USENIX Security 2026}
+}
+
+@unpublished{qin2026auditfirstrollback,
+  title={Audit-First Rollback Semantics for Safety-Critical Deployment Pipelines},
+  author={Qin, Xue and Luan, Simin and See, John and Boukhers, Zeyd and Yang, Cong and Li, Zhijun},
+  year={2026},
+  note={In preparation, SOSP 2026}
+}
+
+@unpublished{qin2026mocap,
+  title={Bounded-Fidelity Sim-as-Demo-Stage: Mocap Handoff for Governance Benchmarks},
+  author={Qin, Xue and Luan, Simin and See, John and Boukhers, Zeyd and Yang, Cong and Li, Zhijun},
+  year={2026},
+  note={In preparation, IEEE RA-L}
+}
+
+@unpublished{qin2026persistentmemory,
+  title={Persistent Episodic Memory under Identity Invariance for Long-Running Embedded Software Systems},
+  author={Qin, Xue and Luan, Simin and See, John and Boukhers, Zeyd and Yang, Cong and Li, Zhijun},
+  year={2026},
+  note={Under review, Empirical Software Engineering (Springer)}
+}
+
+@unpublished{qin2027semantic,
+  title={Episodic-to-Semantic Consolidation Without Identity Drift},
+  author={Qin, Xue and Luan, Simin and See, John and Boukhers, Zeyd and Yang, Cong and Li, Zhijun},
+  year={2027},
+  note={In preparation, CoRL 2027 / RSS 2027}
+}
+
+@unpublished{qin2026adaptivepersona,
+  title={Governed Maturation Under Frozen Identity: Operator-Signed Adaptive Persona with Cryptographic Provenance in Long-Running Embodied Agents},
+  author={Qin, Xue and Luan, Simin and See, John and Boukhers, Zeyd and Yang, Cong and Li, Zhijun},
+  year={2026},
+  note={Under review, ACM TAAS}
+}</pre>
+    </div>
   </div>
 </section>
 
 <!-- ==================== AUTHORS ==================== -->
 <section class="authors" id="authors">
-  <div class="container">
-    <h2>Authors</h2>
-    <div class="author-grid">
-      <div class="author-item">
-        <div class="name">Xue Qin</div>
-        <div class="affil">Harbin Institute of Technology</div>
-        <div class="affil">School of Software</div>
+  <div class="col">
+    <div class="ring-marker">Authors</div>
+    <h2>The programme team.</h2>
+    <div class="authors-grid">
+      <div class="author lead-author affil-hit">
+        <div>
+          <div class="role">First author</div>
+          <div class="name">Xue Qin</div>
+        </div>
+        <div class="affil">Harbin Institute of Technology<br>School of Software<br>Harbin, China</div>
       </div>
-      <div class="author-item">
+      <div class="author affil-hit">
         <div class="name">Simin Luan</div>
-        <div class="affil">Harbin Institute of Technology</div>
-        <div class="affil">School of Computer Science</div>
+        <div class="affil">Harbin Institute of Technology<br>School of Computer Science<br>Harbin, China</div>
       </div>
-      <div class="author-item">
+      <div class="author affil-hwu">
         <div class="name">John See</div>
-        <div class="affil">Heriot-Watt University</div>
-        <div class="affil">Malaysia Campus</div>
+        <div class="affil">Heriot-Watt University<br>Malaysia Campus<br>Putrajaya, Malaysia</div>
       </div>
-      <div class="author-item">
-        <div class="name">Cong Yang*</div>
-        <div class="affil">Soochow University</div>
-        <div class="affil">School of Future Sci. &amp; Eng.</div>
-        <div class="corresponding">Corresponding author</div>
+      <div class="author affil-fraunhofer">
+        <div class="name">Zeyd Boukhers</div>
+        <div class="affil">Fraunhofer Institute<br>Applied Information Technology<br>Sankt Augustin, Germany</div>
       </div>
-      <div class="author-item">
-        <div class="name">Zhijun Li*</div>
-        <div class="affil">Harbin Institute of Technology</div>
-        <div class="affil">School of Computer Science</div>
-        <div class="corresponding">Corresponding author</div>
+      <div class="author corresponding affil-soochow">
+        <div class="name">Cong Yang <em>· corresponding</em></div>
+        <div class="affil">Soochow University<br>School of Future Sci. &amp; Eng.<br>Suzhou, China</div>
+      </div>
+      <div class="author corresponding affil-hit">
+        <div class="name">Zhijun Li <em>· corresponding</em></div>
+        <div class="affil">Harbin Institute of Technology<br>School of Computer Science<br>Harbin, China</div>
       </div>
     </div>
   </div>
@@ -838,21 +1806,29 @@
 
 <!-- ==================== FOOTER ==================== -->
 <footer>
-  <div class="container">
-    &copy; 2026 AEROS Project &middot;
-    <a href="https://github.com/s20sc/aeros-project" style="color: var(--blue);">GitHub</a>
+  <div class="col-wide">
+    <div>&copy; 2026 AEROS Project</div>
+    <div>v3 &nbsp;·&nbsp; concentric restraint</div>
   </div>
 </footer>
 
 <script>
-function copyBib() {
-  const bib = document.getElementById('bib-all').innerText.replace('Copy All', '').trim();
-  navigator.clipboard.writeText(bib).then(() => {
-    const btn = document.querySelector('.copy-btn');
-    btn.textContent = 'Copied!';
-    setTimeout(() => btn.textContent = 'Copy All', 2000);
-  });
-}
+  (() => {
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncSvgMotion = () => {
+      const svg = document.querySelector(".rings-svg");
+      if (!svg || typeof svg.pauseAnimations !== "function") return;
+      if (motionQuery.matches) svg.pauseAnimations();
+      else svg.unpauseAnimations();
+    };
+
+    syncSvgMotion();
+    if (typeof motionQuery.addEventListener === "function") {
+      motionQuery.addEventListener("change", syncSvgMotion);
+    } else {
+      motionQuery.addListener(syncSvgMotion);
+    }
+  })();
 </script>
 
 </body>
